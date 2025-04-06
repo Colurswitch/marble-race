@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marble Race</title>
+
+    <style>
+        body {
+            margin: 0;
+        }
+
+        stretch {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #loadingProgress {
+            width: 100%;
+            height: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        #loadingProgressBar {
+            height: inherit;
+            background: #fff;
+            border-radius: 15px;
+        }
+
+        @media only screen and (max-width: 768px) {
+            
+        }
+    </style>
+</head>
+<body>
+    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; background: black; padding: 10px; height: calc(100vh - 20px);">
+        <div style="width: 100%; max-width: 768px;">
+            <div id="loadingText" style="color: white; font-size: 27px; display: flex; justify-content: space-between;">
+                <span id="loadingTextLeft">Loading...</span>
+                <span id="loadingTextRight">0%</span>
+            </div>
+            <div id="loadingProgress" style="width: 100%;">
+                <!-- Progress bar will be dynamically updated by JavaScript -->
+                <div id="loadingProgressBar" style="width: 0%;"></div>
+            </div>
+            <div id="loadingTips" style="height: 150px; border-radius: 10px; background-color: rgba(185, 185, 185, .5); display: flex; justify-content: center; align-items: center; font-size: 27px; color: white">
+                Tips show here
+            </div>
+        </div>
+    </stretch>
+    <script src="/js/index.js"></script>
+    <!-- Other JavaScript files, CSS files, and external libraries go here -->
+</body>
+</html>
