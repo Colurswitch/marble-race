@@ -61,7 +61,7 @@ class MB_AsyncLoadController {
         const promiseSequence = funcs.reduce((promise, func, idx) => {
             return promise.then(() => {
                 this.loadingText.textContent = funcList[idx].text;
-                this.loadingProgressBar.style.width = `${Math.round((100 / funcList.length) * idx)}%`;
+                this.loadingProgressBar.style.width = this.loadingPercentage.textContent = `${Math.round((100 / funcList.length) * idx)}%`;
                 func()
             });
         }, Promise.resolve());
@@ -184,7 +184,7 @@ class MB_HomeCanvasManager {
         // Render the scene to the canvas
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setClearColor(0xffffff, 1)
-        this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.domElement.style = "width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: -100";
         this.container.appendChild(this.renderer.domElement);
     }
