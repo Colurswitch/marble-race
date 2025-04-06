@@ -1,0 +1,28 @@
+/*Define a font family*/
+@font-face {
+    font-family: "Product Sans";
+    font-style: normal;
+    font-weight: normal;
+    src: url("ProductSans-Regular.ttf");
+}
+@font-face {
+    font-family: "Product Sans";
+    font-style: italic;
+    font-weight: normal;
+    src: url("ProductSans-Italic.ttf");
+}
+@font-face {
+    font-family: "Product Sans";
+    font-style: normal;
+    font-weight: bold;
+    src: url("ProductSans-Bold.ttf");
+}
+@font-face {
+    font-family: "Product Sans";
+    font-style: italic;
+    font-weight: bold;
+    src: url("ProductSans-BoldItalic.ttf");
+}
+body {
+    font-family: "Product Sans" !important;
+}

@@ -55,7 +55,8 @@ class MB_AsyncLoadController {
         // and clear the loading tips and progress bar when the promise sequence is resolved
         // or when the callback function is executed
         if (this.loadingScreen) this.loadingScreen.style.display = "block";
-        const funcs = funcList.map(f => f.func);
+        const funcs = [];
+        funcList.forEach(f => funcs.push(f.func));
         const promiseSequence = funcs.reduce((promise, func, idx) => {
             return promise.then(() => {
                 this.loadingText.textContent = funcList[idx].text;
@@ -110,7 +111,10 @@ const asyncLoadController = new MB_AsyncLoadController({
 asyncLoadController.initLoadOperation(
     new MB_AsyncLoadOperation("Checking compatibility...",() => {
         // Does the browser support WebGL?
-        if (!webGLSupported()) throw new Error("Current browser does not support WebGL.");
+        if (!webGLSupported()) {
+            document.getElementById("noSupport").style.display = "flex";
+            throw new Error("Current browser does not support WebGL.");
+        };
         // Does the browser support WebSockets?
         if (!webSocketsSupported()) {
             console.warn("The current browser does not support WebSockets. The game will still be playable, but online play is disabled.");

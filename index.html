@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marble Race</title>
-
+    <link rel="stylesheet" href="css/product-sans.css" />
     <style>
         body {
             margin: 0;
+            overflow: hidden;
         }
 
         stretch {
@@ -52,7 +53,12 @@
             </div>
         </div>
     </stretch>
+    <stretch id="noSupport" style="display: none; align-items: center; justify-content: center; flex-direction: column; background: black; color: white;">
+        <img src="img/marble_race_logo.png" alt="Marble Race" width="150">
+        <p>Your browser does not support WebGL. The game has been disabled.</p>
+    </stretch>
     <script src="js/index.js"></script>
+    <noscript>Please enable JavaScript.</noscript>
     <!-- Other JavaScript files, CSS files, and external libraries go here -->
 </body>
 </html>
