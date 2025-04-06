@@ -157,16 +157,11 @@ class MB_InputManager {
 class MB_HomeCanvasManager {
     /**
      * Initializes a new instance of the MB_HomeCanvasManager class.
-     * @param {HTMLCanvasElement} canvas - The canvas element to be used for rendering.
+     * @param {HTMLElement} containerElement - The container element for the canvas.
      * @returns {void}
      */
-    constructor(canvas) {
-        this.canvas = canvas;
-        this.context = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        if (!this.context) {
-            console.error("WebGL not supported");
-            return;
-        }
+    constructor(containerElement) {
+        this.container = containerElement;
     }
 
     create3DViewport() {
@@ -183,9 +178,11 @@ class MB_HomeCanvasManager {
         this.scene.background = new THREE.Color(255, 184, 184);
         this.scene.add(camera);
         // Render the scene to the canvas
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
+        this.renderer = new THREE.WebGLRenderer();
         this.renderer.setClearColor(0xffffff, 1)
         this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+        this.renderer.domElement.style = "width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: -100";
+        this.container.appendChild(this.renderer.domElement);
     }
 }
 

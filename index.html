@@ -9,6 +9,7 @@
         body {
             margin: 0;
             overflow: hidden;
+            background: black;
         }
 
         stretch {
@@ -47,7 +48,7 @@
     </style>
 </head>
 <body>
-    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; background: black; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);">
+    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);">
         <div style="width: 100%; max-width: 768px;">
             <div id="loadingText" style="color: white; font-size: 27px; display: flex; justify-content: space-between;">
                 <span id="loadingTextLeft">Loading...</span>
