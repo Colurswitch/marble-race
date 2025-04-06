@@ -158,12 +158,16 @@ class MB_HomeCanvasManager {
     /**
      * Initializes a new instance of the MB_HomeCanvasManager class.
      * @param {HTMLElement} containerElement - The container element for the canvas.
-     * @returns {void}
+     * @returns {MB_HomeCanvasManager}
      */
     constructor(containerElement) {
         this.container = containerElement;
     }
 
+    /**
+     * Creates a new 3D viewport by creating a new scene with THREE.js and rendering it to the canvas.
+     * @returns {void}
+     */
     create3DViewport() {
         // Create a new scene with THREE.js
         this.scene = new THREE.Scene();
@@ -221,7 +225,7 @@ const asyncLoadController = new MB_AsyncLoadController({
     ]
 });
 const inputManager = new MB_InputManager(2);
-const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreenCanvas"));
+const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreen"));
 
 // Check compatibility
 asyncLoadController.initLoadOperation([
