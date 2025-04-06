@@ -1,3 +1,5 @@
+import * as THREE from 'three'; // Three.js
+
 class MB_AsyncLoadOperation {
     /**
      * Initializes a new instance of the MB_AsyncLoadOperation class.
@@ -54,9 +56,8 @@ class MB_AsyncLoadController {
         // Hide the loading screen when all functions have been executed
         // and clear the loading tips and progress bar when the promise sequence is resolved
         // or when the callback function is executed
-        if (this.loadingScreen) this.loadingScreen.style.display = "block";
-        const funcs = [];
-        funcList.forEach(f => funcs.push(f.func));
+        if (this.loadingScreen) this.loadingScreen.classList.remove("hidden");
+        const funcs = funcList.map(f => f.func);
         const promiseSequence = funcs.reduce((promise, func, idx) => {
             return promise.then(() => {
                 this.loadingText.textContent = funcList[idx].text;
@@ -66,10 +67,125 @@ class MB_AsyncLoadController {
         }, Promise.resolve());
         // Resolve the promise sequence when all functions have been executed
         promiseSequence.then(() => {
-            this.loadingScreen.style.display = 'none'; // Hide the loading screen
+            this.loadingScreen.classList.add("hidden"); // Hide the loading screen
             if (this.loadingTips) this.loadingTips.textContent = ''; // Clear the loading tips
             if (callback) callback(); // Execute the callback function
         });
+    }
+}
+
+class MB_InputManager {
+    /**
+     * Initializes a new instance of the MB_InputManager class.
+     * @param {number} [inputThreshold=1] - Minimum input value required to trigger a player movement event.
+     * @returns {MB_InputManager}
+     */
+    constructor(inputThreshold = 1) {
+        this.playerMovementInput = new THREE.Vector2(0, 0);
+        this.inputThreshold = inputThreshold;
+    }
+
+    /**
+     * Subscribes to document events that trigger a player movement event.
+     * @param {boolean} showCursor - Whether or not to show the mouse cursor.
+     * @param {boolean} lockCursor - Whether or not to lock the mouse cursor to the center of the canvas.
+     * @param {function} onMovementChange - Callback function that is invoked when the player movement input changes.
+     * @param {THREE.Vector2} onMovementChange.playerMovementInput - The player movement input.
+     * @param {MouseEvent} onMovementChange.event - The event that triggered the player movement input change.
+     */
+    subscribeToEvents(showCursor, lockCursor, onMovementChange) {
+        // On key down, get the pressed key unless an input field is in focus.
+        document.addEventListener("keydown", event => {
+            if (!event.target.matches("input,textarea")) {
+                // Keys can be combined (e.g.: W and D key press allows for diagonal movement)
+                switch (event.key) {
+                    case "W":
+                    case "w":
+                    case "ArrowUp":
+                        this.playerMovementInput.y = this.inputThreshold;
+                        break;
+                    case "A":
+                    case "a":
+                    case "ArrowLeft":
+                        this.playerMovementInput.x = -this.inputThreshold;
+                        break;
+                    case "S":
+                    case "s":
+                    case "ArrowDown":
+                        this.playerMovementInput.y = -this.inputThreshold;
+                        break;
+                    case "D":
+                    case "d":
+                    case "ArrowRight":
+                        this.playerMovementInput.x = this.inputThreshold;
+                        break;
+                }
+            }
+            if (onMovementChange) onMovementChange(this.playerMovementInput, event);
+        });
+        // Enable/disable the mouse cursor
+        document.body.style.cursor = showCursor ? "default" : "none";
+        // Lock the mouse cursor to the center of the canvas
+        if (lockCursor) {
+            document.body.requestPointerLock()
+        }
+        document.addEventListener("mousemove",event => {
+            // Update the player's movement input based on mouse movement
+            this.playerMovementInput.x = event.movementX;
+            this.playerMovementInput.y = event.movementY;
+            if (onMovementChange) onMovementChange(this.playerMovementInput, event);
+        });
+    }
+
+    /**
+     * Shows the mouse cursor
+     * @returns {void}
+     */
+    showCursor() {
+        this.cursor.style.display = "default";
+    }
+
+    /**
+     * Releases the mouse cursor from being locked to the center of the canvas.
+     * @returns {void}
+     */
+    unlockCursor() {
+        document.exitPointerLock();
+    }
+}
+
+class MB_HomeCanvasManager {
+    /**
+     * Initializes a new instance of the MB_HomeCanvasManager class.
+     * @param {HTMLCanvasElement} canvas - The canvas element to be used for rendering.
+     * @returns {void}
+     */
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.context = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        if (!this.context) {
+            console.error("WebGL not supported");
+            return;
+        }
+    }
+
+    create3DViewport() {
+        // Create a new scene with THREE.js
+        this.scene = new THREE.Scene();
+        // Create a camera
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            this.canvas.clientWidth / this.canvas.clientHeight,
+            0.1,
+            1000
+        );
+        camera.position.z = 5;
+        this.scene.background = new THREE.Color(255, 184, 184);
+        this.scene.add(camera);
+        // Render the scene to the canvas
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
+        this.renderer.setClearColor(0xffffff, 1)
+        this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
     }
 }
 
@@ -94,6 +210,7 @@ function webSocketsSupported() {
 }
 
 const onlinePlayEnabled = true;
+const gamepadSupported = true;
 
 const asyncLoadController = new MB_AsyncLoadController({
     loadingScreen: document.getElementById("loadingScreen"),
@@ -106,9 +223,11 @@ const asyncLoadController = new MB_AsyncLoadController({
         "Be careful not to touch the spikes!"
     ]
 });
+const inputManager = new MB_InputManager(2);
+const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreenCanvas"));
 
 // Check compatibility
-asyncLoadController.initLoadOperation(
+asyncLoadController.initLoadOperation([
     new MB_AsyncLoadOperation("Checking compatibility...",() => {
         // Does the browser support WebGL?
         if (!webGLSupported()) {
@@ -120,5 +239,20 @@ asyncLoadController.initLoadOperation(
             console.warn("The current browser does not support WebSockets. The game will still be playable, but online play is disabled.");
             onlinePlayEnabled = false;
         }
+        // Is the Gamepad API supported?
+        if (!navigator.getGamepads()) {
+            console.warn("The current browser does not support Gamepad API. The game will still be playable, but use of gamepads is disabled.");
+            gamepadSupported = false;
+        }
+        // Internet Explorer?
+        if (navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
+            console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
+        }
+    }),
+    new MB_AsyncLoadOperation("Loading main menu...",() => {
+        // Create a new WebGL viewport
+        homeCanvasManager.create3DViewport();
     })
-)
+], function() {
+
+});

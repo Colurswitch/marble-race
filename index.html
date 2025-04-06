@@ -15,8 +15,17 @@
             width: 100%;
             height: 100vh;
             display: flex;
+            position: absolute;
+            top: 0; left: 0;
             justify-content: center;
             align-items: center;
+            transition: all .5s ease-in-out;
+            opacity: 1;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         #loadingProgress {
@@ -38,7 +47,7 @@
     </style>
 </head>
 <body>
-    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; background: black; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px)">
+    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; background: black; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);">
         <div style="width: 100%; max-width: 768px;">
             <div id="loadingText" style="color: white; font-size: 27px; display: flex; justify-content: space-between;">
                 <span id="loadingTextLeft">Loading...</span>
@@ -53,11 +62,23 @@
             </div>
         </div>
     </stretch>
+    <stretch id="homeScreen">
+        <canvas id="homeScreenCanvas" style="width: 100%; height: 100vh; position: absolute; top: 0; left: 0;"></canvas>
+    </stretch>
     <stretch id="noSupport" style="display: none; align-items: center; justify-content: center; flex-direction: column; background: black; color: white;">
         <img src="img/marble_race_logo.png" alt="Marble Race" width="150">
         <p>Your browser does not support WebGL. The game has been disabled.</p>
     </stretch>
-    <script src="js/index.js"></script>
+    <script src="js/index.js" type="module"></script>
+    <!-- THREE.js for WebGL graphics -->
+    <script type="importmap">
+        {
+            "imports": {
+              "three": "https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js",
+              "three/addons/": "https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/"
+            }
+        }
+    </script>
     <noscript>Please enable JavaScript.</noscript>
     <!-- Other JavaScript files, CSS files, and external libraries go here -->
 </body>
