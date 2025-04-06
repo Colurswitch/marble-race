@@ -174,7 +174,7 @@ class MB_HomeCanvasManager {
         // Create a camera
         const camera = new THREE.PerspectiveCamera(
             75,
-            this.canvas.clientWidth / this.canvas.clientHeight,
+            this.container.clientWidth / this.container.clientHeight,
             0.1,
             1000
         );
