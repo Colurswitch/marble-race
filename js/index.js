@@ -41,7 +41,7 @@ class MB_AsyncLoadController {
     initLoadOperation (funcList, callback) {
         // Create a Promise resolution when each
         // function in "funcs" array has been completed
-        const tipInterval;
+        var tipInterval;
         // Display a random tip from this.tips array (if populated) every 10 seconds until the loading
         // operation has completed.
         if (this.loadingTips && this.tips.length > 0) {
