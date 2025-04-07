@@ -30,24 +30,71 @@
             pointer-events: none;
         }
 
-        .button {
-            background: #36363696;
+        .button, .input, .select, .checkbox, .radio,
+        input, textarea, select, button{
+            appearance: none;
+            background: rgba(185, 185, 185, .5);
             border: none;
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
             transform: scale(1);
-            transition: transform .2s ease-in-out;
+            transition: transform .2s ease-out;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
-        .button span:not(:first-child) {
+        .input, .select, input[type=text], input[type=color], select, textarea {
+            text-align: start;
+            justify-content: flex-start;
+            margin: 5px;
+            resize: none;
+        }
+
+        .checkbox, .radio, input[type=checkbox], input[type=radio] {
+            width: 25px;
+            height: 25px;
+            padding: 0;
+        }
+
+        .checkbox:checked, input[type=checkbox]:checked, .radio:checked, input[type=radio]:checked {
+            background-image: url('img/check.png');
+            border: 3px solid white;
+        }
+
+        input[type=color] {
+            padding: 1px;
+        }
+
+        .input.is-resizable, textarea.is-resizable {
+            resize: both;
+        }
+
+        .button.is-large, button.is-large, input[type=button].is-large
+        input[type=submit].is-large, input[type=reset].is-large {
+            font-size: 24px !important;
+        }
+
+        .button.is-large .icon, button.is-large .icon, input[type=button].is-large .icon
+        input[type=submit].is-large .icon, input[type=reset].is-large .icon {
+            font-size: 36px !important;
+        }
+
+        .button span:not(:first-child), button span:not(:first-child), input[type=button] span:not(:first-child)
+        input[type=submit] span:not(:first-child), input[type=reset] span:not(:first-child) {
             margin-left: 10px;
         }
 
-        .button:hover {
-            transform: scale(1.5);
+        .button:hover, button:hover, input[type=button]:hover
+        input[type=submit]:hover, input[type=reset]:hover {
+            transform: scale(1.1);
+        }
+
+        .button:not(:last-child), button:not(:last-child), input[type=button]:not(:last-child)
+        input[type=submit]:not(:last-child), input[type=reset]:not(:last-child) {
+            margin-bottom: 10px;
         }
 
         #loadingProgress {
@@ -69,12 +116,56 @@
     </style>
 </head>
 <body>
-    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);">
-        <div style="width: 100%; max-width: 768px;">
-            <button class="button">
-                <i class="material-icons">play_arrow</i>
-                <span>Start Game</span>
+    
+    <stretch id="homeScreen" style="align-items: flex-end; justify-content: flex-end;">
+        <canvas id="homeScreenCanvas" style="width: 100%; height: 100vh; position: absolute; top: 0; left: 0;"></canvas>
+        <div style="margin: 10px; display: flex; flex-direction: column;">
+            <button class="is-large" onclick="loadGame()">
+                <i class="material-icons icon">play_arrow</i>
+                <span>Play</span>
             </button>
+            <button class="is-large" onclick="loadAccount()">
+                <i class="material-icons icon">person</i>
+                <span>Account</span>
+            </button>
+            <button class="is-large" onclick="document.getElementById('settingsScreen').style.display = 'flex';">
+                <i class="material-icons icon">settings</i>
+                <span>Settings</span>
+            </button>
+            <button class="is-large" onclick="document.getElementById('aboutScreen').style.display = 'flex';">
+                <i class="material-icons icon">info</i>
+                <span>About</span>
+            </button>
+        </div>
+    </stretch>
+    <stretch id="aboutScreen" style="display: none; flex-direction: column; backdrop-filter: blur(5px) brightness(50%);">
+        <img src="img/marble_race_logo.png" alt="Marble Race" width="150">
+        <p style="text-align: left;">
+            Marble Race is a 3D marble racing game inspired by the Steam game of the same name.<br>
+            It features a realistic physics simulation, multiple game modes (e.g., single player, multiplayer), and a high-score leaderboard.
+            <br><br>
+            Made by Combiete Lantey.
+            <br><br>
+            Dependencies used:
+            <ul>
+                <li>THREE.js for 3D graphics</li>
+            </ul>
+        </p>
+        <button class="button" onclick="document.getElementById('aboutScreen').style.display = 'none';">
+            <i class="material-icons icon">arrow_back</i>
+            <span>Back</span>
+        </button>
+    </stretch>
+    <stretch id="settingsScreen" style="display: flex; align-items: flex-start; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 20px">
+        <h1>Settings</h1>
+        <div id="settingsContainer"></div>
+        <button class="button" onclick="document.getElementById('settingsScreen').style.display = 'none';">
+            <i class="material-icons icon">arrow_back</i>
+            <span>Back</span>
+        </button>
+    </stretch>
+    <stretch id="loadingScreen" style="display: none; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);">
+        <div style="width: 100%; max-width: 768px;">
             <div id="loadingText" style="color: white; font-size: 27px; display: flex; justify-content: space-between;">
                 <span id="loadingTextLeft">Loading...</span>
                 <span id="loadingTextRight">0%</span>
@@ -88,10 +179,7 @@
             </div>
         </div>
     </stretch>
-    <stretch id="homeScreen">
-        <canvas id="homeScreenCanvas" style="width: 100%; height: 100vh; position: absolute; top: 0; left: 0;"></canvas>
-    </stretch>
-    <stretch id="noSupport" style="display: none; align-items: center; justify-content: center; flex-direction: column; background: black; color: white;">
+    <stretch id="noSupport" style="display: none; flex-direction: column; background: black; color: white;">
         <img src="img/marble_race_logo.png" alt="Marble Race" width="150">
         <p>Your browser does not support WebGL. The game has been disabled.</p>
     </stretch>

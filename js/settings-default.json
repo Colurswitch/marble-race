@@ -1,0 +1,20 @@
+{
+    "$schema": "settings-schema.json",
+    "display": {
+        "quality": "medium",
+        "vsync": true,
+        "debugMode": false
+    },
+    "sound": {
+        "enabled": true
+    },
+    "controls": {
+        "useMouse": true,
+        "useKeyboard": true,
+        "useGamepad": false,
+        "gamepadControls": {
+            "playerMovement": "leftJoystick",
+            "uiNavigation": "dPad"
+        }
+    }
+}

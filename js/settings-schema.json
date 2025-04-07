@@ -1,0 +1,89 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "settings-schema.json",
+    "title": "Settings",
+    "properties": {
+        "display": {
+            "title": "Display",
+            "type": "object",
+            "properties": {
+                "quality": {
+                    "title": "Quality",
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "ultra"
+                    ]
+                },
+                "vsync": {
+                    "title": "VSync",
+                    "type": "boolean",
+                    "format": "checkbox"
+                },
+                "debugMode": {
+                    "title": "Debug mode",
+                    "type": "boolean",
+                    "format": "checkbox"
+                }
+            }
+        },
+        "sound": {
+            "title": "Sound",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "title": "Sound enabled",
+                    "type": "boolean",
+                    "format": "checkbox"
+                }
+            }
+        },
+        "controls": {
+            "title": "Controls",
+            "type": "object",
+            "properties": {
+                "useMouse": {
+                    "title": "Use mouse",
+                    "type": "boolean",
+                    "format": "checkbox"
+                },
+                "useKeyboard": {
+                    "title": "Use keyboard",
+                    "type": "boolean",
+                    "format": "checkbox"
+                },
+                "useGamepad": {
+                    "title": "Use gamepad",
+                    "type": "boolean",
+                    "format": "checkbox"
+                },
+                "gamepadControls": {
+                    "title": "Gamepad controls",
+                    "type": "object",
+                    "properties": {
+                        "uiNavigation": {
+                            "title": "UI Navigation",
+                            "type": "string",
+                            "enum": [
+                                "dPad",
+                                "leftJoystick",
+                                "rightJoystick"
+                            ]
+                        },
+                        "playerMovement": {
+                            "title": "Player Movement",
+                            "type": "string",
+                            "enum": [
+                                "dPad",
+                                "leftJoystick",
+                                "rightJoystick"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

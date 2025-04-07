@@ -1,4 +1,6 @@
 import * as THREE from 'three'; // Three.js
+import mb_settingsSchema from 'settings-schema.json' with {type: "json"};
+import mb_defaultSettings from 'settings-default.json' with {type: "json"}
 
 class MB_AsyncLoadOperation {
     /**
@@ -188,6 +190,147 @@ class MB_AudioManager {
     }
 }
 
+class MB_3DSceneUtility {
+    static appendObjectFromDataToScene(targetScene, data) {
+        
+    }
+}
+
+class MB_ExternalResource {
+    /**
+     * Initializes a new instance of the MB_ExternalResource class.
+     * @param {string} url - The URL of the external resource.
+     * @param {string} type - The type of the resource (e.g., 'css' or 'js').
+     */
+    constructor(url, type) {
+        this.url = url;
+        this.type = type;
+    }
+}
+
+class MB_ResourceLoader {
+    
+    /**
+     * Loads multiple resources from the specified URLs, and appends them to the document
+     * either in the head (for CSS) or body (for JS). Resolves when all resources have finished
+     * loading, rejects if any resource fails to load.
+     * @param {Array<MB_ExternalResource>} resources - The resources to be loaded.
+     * @returns {Promise<void>}
+     */
+    static loadFilesFromURLs(resources) {
+        /**
+         * Loads a resource from the specified URL, and appends it to the document either
+         * in the head (for CSS) or body (for JS). Resolves when the resource has finished
+         * loading, rejects if the resource fails to load.
+         * @param {string} url - The URL from which to load the resource.
+         * @param {'css'|'js'} type - The type of resource to load.
+         * @returns {Promise<void>}
+         */
+        function loadResource(url, type) {
+            return new Promise((resolve, reject) => {
+              let element;
+          
+              if (type === 'css') {
+                element = document.createElement('link');
+                element.rel = 'stylesheet';
+                element.href = url;
+                document.head.appendChild(element);
+              } else if (type === 'js') {
+                element = document.createElement('script');
+                element.src = url;
+                document.body.appendChild(element);
+              } else {
+                reject(new Error('Invalid resource type specified'));
+                return;
+              }
+          
+              element.onload = () => {
+                console.log(`${type.toUpperCase()} resource loaded: ${url}`);
+                resolve();
+              };
+          
+              element.onerror = () => {
+                console.error(`Failed to load ${type.toUpperCase()} resource: ${url}`);
+                reject(new Error(`Failed to load resource: ${url}`));
+              };
+            });
+        }
+        
+        const rsrces = resources.map(rsrc => loadResource(rsrc.url, rsrc.type))
+        return Promise.all(rsrces);
+    }
+}
+
+class MB_StorageManager {
+    /**
+     * Initializes a new instance of the MB_StorageManager class.
+     * @param {JSONEditor} settingsEditor - The JSONEditor to use for saving and loading settings.
+     */
+    constructor(settingsEditor) {
+        this.settingsEditor = settingsEditor; // a JSONEditor
+    }
+
+    /**
+     * Checks if the local storage is available and functional.
+     * Attempts to set and remove an item from the storage to verify availability.
+     * 
+     * @returns {boolean} true if the storage is available and functional, false if the storage is not available 
+     * or if storage quota is exceeded.
+     */
+    localStorageAvailable() {
+        /**
+         * Checks if the specified type of web storage is available and functional.
+         * Attempts to set and remove an item from the storage to verify availability.
+         * 
+         * @param {string} type - The type of storage to check ('localStorage' or 'sessionStorage').
+         * @returns {boolean} true if the storage is available and functional, false if the storage is not available 
+         * or if storage quota is exceeded.
+         */
+        function storageAvailable(type) {
+            let storage;
+            try {
+                storage = window[type];
+                const x = "__storage_test__";
+                storage.setItem(x, x);
+                storage.removeItem(x);
+                return true;
+            } catch (e) {
+                return (
+                e instanceof DOMException &&
+                e.name === "QuotaExceededError" &&
+                // acknowledge QuotaExceededError only if there's something already stored
+                storage &&
+                storage.length !== 0
+                );
+            }
+        }
+        try {
+            return storageAvailable("localStorage")
+        } catch (error) {
+            // Got a SecurityError, assuming not available
+            return false;
+        }
+    }
+
+    /**
+     * Initializes the settings editor with values from local storage or default settings.
+     * Sets up an event listener to save changes to local storage whenever the editor's content changes.
+     * @returns {void}
+     */
+    setupEditors() {
+        this.settingsEditor.setValue(
+            JSON.parse(localStorage.getItem("MB_Settings")) ||
+            mb_defaultSettings
+        );
+        this.settingsEditor.on("change", () => {
+            if (this.settingsEditor.validate().length) {
+                console.error("MB_StorageManager: Error while parsing new settings:", this.settingsEditor.validate())
+            }
+            localStorage.setItem("MB_Settings", JSON.stringify(this.settingsEditor.getValue()));
+        });
+    }
+}
+
 class MB_HomeCanvasManager {
     /**
      * Initializes a new instance of the MB_HomeCanvasManager class.
@@ -256,6 +399,9 @@ function webSocketsSupported() {
 
 const onlinePlayEnabled = true;
 const gamepadSupported = true;
+const dataSaving = true;
+
+var settingsEditor;
 
 const asyncLoadController = new MB_AsyncLoadController({
     loadingScreen: document.getElementById("loadingScreen"),
@@ -271,6 +417,7 @@ const asyncLoadController = new MB_AsyncLoadController({
 const inputManager = new MB_InputManager(2);
 const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreen"));
 const audioManager = new MB_AudioManager();
+var storageManager;
 
 // Check compatibility
 asyncLoadController.initLoadOperation([
@@ -290,10 +437,31 @@ asyncLoadController.initLoadOperation([
             console.warn("The current browser does not support Gamepad API. The game will still be playable, but use of gamepads is disabled.");
             gamepadSupported = false;
         }
+        // 
         // Internet Explorer?
         if (navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
             console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
         }
+    }),
+    new MB_AsyncLoadOperation("Loading external resources...", MB_ResourceLoader.loadFilesFromURLs([
+        new MB_ExternalResource("https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js", "js"),
+        new MB_ExternalResource("https://code.jquery.com/jquery-3.7.1.min.js", "js"),
+    ])),
+    new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
+        settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
+            schema: mb_defaultSettings,
+            theme: "barebones"
+        });
+        storageManager = new MB_StorageManager(settingsEditor);
+        storageManager.setupEditors();
+    }),
+    new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {
+        // When the user closes the page, display a confirmation before closing
+        window.addEventListener("beforeunload", function(event) {
+            event.preventDefault();
+            event.returnValue = "Are you sure you want to exit the game?";
+            return "Are you sure you want to exit the game?";
+        });
     }),
     new MB_AsyncLoadOperation("Loading main menu...",() => {
         // Create a new WebGL viewport
