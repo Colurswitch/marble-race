@@ -62,7 +62,7 @@ class MB_AsyncLoadController {
             return promise.then(() => {
                 this.loadingText.textContent = funcList[idx].text;
                 this.loadingProgressBar.style.width = `${Math.round((100 / funcList.length) * idx)}%`;
-                this.loadingPercentage.textContent = this.loadingProgressBar.style.width;
+                this.loadingPercentage.textContent = `${Math.round((100 / funcList.length) * idx)}%`;
                 func()
             });
         }, Promise.resolve());
