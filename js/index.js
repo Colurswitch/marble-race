@@ -61,7 +61,8 @@ class MB_AsyncLoadController {
         const promiseSequence = funcs.reduce((promise, func, idx) => {
             return promise.then(() => {
                 this.loadingText.textContent = funcList[idx].text;
-                this.loadingProgressBar.style.width = this.loadingPercentage.textContent = `${Math.round((100 / funcList.length) * idx)}%`;
+                this.loadingProgressBar.style.width = `${Math.round((100 / funcList.length) * idx)}%`;
+                this.loadingPercentage.textContent = this.loadingProgressBar.style.width;
                 func()
             });
         }, Promise.resolve());
@@ -221,7 +222,7 @@ const asyncLoadController = new MB_AsyncLoadController({
     loadingTips: document.getElementById("loadingTips"),
     tips: [
         "In some levels, you can jump using the spacebar.",
-        "Be careful not to touch the spikes!"
+        "Be careful not to touch the spikes!",
     ]
 });
 const inputManager = new MB_InputManager(2);
