@@ -1,6 +1,6 @@
 import * as THREE from 'three'; // Three.js
-import mb_settingsSchema from 'settings-schema.json' with {type: "json"};
-import mb_defaultSettings from 'settings-default.json' with {type: "json"}
+import mb_settingsSchema from './settings-schema.json' with {type: "json"};
+import mb_defaultSettings from './settings-default.json' with {type: "json"}
 
 class MB_AsyncLoadOperation {
     /**
@@ -74,6 +74,7 @@ class MB_AsyncLoadController {
             this.loadingProgressBar.style.width = "100%";
             this.loadingScreen.classList.add("hidden"); // Hide the loading screen
             if (this.loadingTips) this.loadingTips.textContent = ''; // Clear the loading tips
+            if (tipInterval) clearInterval(tipInterval); // Clear the tip interval
             if (callback) callback(); // Execute the callback function
         });
     }

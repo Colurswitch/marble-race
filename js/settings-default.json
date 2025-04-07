@@ -14,7 +14,8 @@
         "useGamepad": false,
         "gamepadControls": {
             "playerMovement": "leftJoystick",
-            "uiNavigation": "dPad"
+            "uiNavigation": "dPad",
+            "gamepadVibration": true
         }
     }
 }

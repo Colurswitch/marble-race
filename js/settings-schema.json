@@ -80,6 +80,10 @@
                                 "leftJoystick",
                                 "rightJoystick"
                             ]
+                        },
+                        "gamepadVibration": {
+                            "title": "Use gamepad vibration (if supported)",
+                            "type": "boolean"
                         }
                     }
                 }
