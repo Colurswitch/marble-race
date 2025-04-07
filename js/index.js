@@ -216,8 +216,8 @@ const gamepadSupported = true;
 
 const asyncLoadController = new MB_AsyncLoadController({
     loadingScreen: document.getElementById("loadingScreen"),
-    loadingText: document.getElementById("loadingText"),
-    loadingPercentage: document.getElementById("loadingPercentage"),
+    loadingText: document.getElementById("loadingTextLeft"),
+    loadingPercentage: document.getElementById("loadingTextRight"),
     loadingProgressBar: document.getElementById("loadingProgressBar"),
     loadingTips: document.getElementById("loadingTips"),
     tips: [
