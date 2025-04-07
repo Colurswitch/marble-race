@@ -61,11 +61,11 @@ class MB_AsyncLoadController {
         if (this.loadingScreen) this.loadingScreen.classList.remove("hidden");
         const funcs = funcList.map(f => f.func);
         const promiseSequence = funcs.reduce((promise, func, idx) => {
-            return promise.then(() => {
+            return promise.then(async () => {
                 this.loadingText.textContent = funcList[idx].text;
                 this.loadingProgressBar.style.width = `${Math.round((100 / funcList.length) * idx)}%`;
                 this.loadingPercentage.textContent = `${Math.round((100 / funcList.length) * idx)}%`;
-                func()
+                await func()
             });
         }, Promise.resolve());
         // Resolve the promise sequence when all functions have been executed
