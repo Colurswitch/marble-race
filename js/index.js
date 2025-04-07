@@ -68,6 +68,8 @@ class MB_AsyncLoadController {
         }, Promise.resolve());
         // Resolve the promise sequence when all functions have been executed
         promiseSequence.then(() => {
+            this.loadingPercentage.textContent = "100%";
+            this.loadingProgressBar.style.width = "100%";
             this.loadingScreen.classList.add("hidden"); // Hide the loading screen
             if (this.loadingTips) this.loadingTips.textContent = ''; // Clear the loading tips
             if (callback) callback(); // Execute the callback function
@@ -155,6 +157,37 @@ class MB_InputManager {
     }
 }
 
+class MB_AudioManager {
+    /**
+     * Initializes a new instance of the MB_AudioManager class.
+     * @param {HTMLAudioElement} audioElement - The HTML audio element for playing sounds.
+     * @returns {MB_AudioManager}
+     */
+    constructor() {
+        this.audioObj = new Audio();
+    }
+
+    /**
+     * Sets or gets the volume level for the audio element.
+     * @param {number} value - A number between 0.0 (muted) and 1.0 (maximum volume) representing the desired volume level.
+     * @returns {void}
+     */
+
+    set volume(value) {
+        this.audioObj.volume = value;
+    }
+
+    get volume() {
+        return this.audioObj.volume;
+    }
+
+    play(src, loop) {
+        this.audioObj.src = src;
+        this.audioObj.loop = loop;
+        this.audioObj.play();
+    }
+}
+
 class MB_HomeCanvasManager {
     /**
      * Initializes a new instance of the MB_HomeCanvasManager class.
@@ -181,16 +214,21 @@ class MB_HomeCanvasManager {
         );
         camera.position.z = 5;
         this.scene.background = new THREE.Color(255, 184, 184);
-        this.scene.add(camera);
+        this.scene.add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial({color: 0x00ff00})))
         // Render the scene to the canvas
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setClearColor(0xffffff, 1)
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.domElement.style = "width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: -100";
         this.container.appendChild(this.renderer.domElement);
+        this.renderer.setAnimationLoop(() => {this.renderer.render(this.scene, camera)});
     }
 }
 
+/**
+ * Checks if WebGL is supported by the browser.
+ * @returns {boolean} true if WebGL is supported, false otherwise
+ */
 function webGLSupported() {
     try {
         const canvas = document.createElement("canvas");
@@ -202,6 +240,11 @@ function webGLSupported() {
         return false;
     }
 }
+
+/**
+ * Checks if WebSockets are supported by the browser.
+ * @returns {boolean} true if WebSockets are supported, false otherwise
+ */
 
 function webSocketsSupported() {
     try {
@@ -227,6 +270,7 @@ const asyncLoadController = new MB_AsyncLoadController({
 });
 const inputManager = new MB_InputManager(2);
 const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreen"));
+const audioManager = new MB_AudioManager();
 
 // Check compatibility
 asyncLoadController.initLoadOperation([
