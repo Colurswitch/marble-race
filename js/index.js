@@ -266,9 +266,14 @@ class MB_StorageManager {
     /**
      * Initializes a new instance of the MB_StorageManager class.
      * @param {JSONEditor} settingsEditor - The JSONEditor to use for saving and loading settings.
+     * @param {HTMLElement} debugOverlay - The HTML element to use for displaying debug information.
+     * @returns {MB_StorageManager}
      */
-    constructor(settingsEditor) {
+    constructor(settingsEditor, debugOverlay) {
         this.settingsEditor = settingsEditor; // a JSONEditor
+        this.debugOverlay = debugOverlay; // a div element
+        this.debugInfoInterval = null;
+        this.fpsLoop = new Date();
     }
 
     /**
@@ -334,10 +339,31 @@ class MB_StorageManager {
         }
         this.settingsEditor.on("change", () => {
             if (this.settingsEditor.validate().length) {
-                console.error("MB_StorageManager: Error while parsing new settings:", this.settingsEditor.validate())
+                console.error("MB_StorageManager: Error while parsing new settings:", this.settingsEditor.validate());
+                return;
             }
             localStorage.setItem("MB_Settings", JSON.stringify(this.settingsEditor.getValue()));
+            this.refresh()
         });
+    }
+
+    refresh() {
+        const $settings = JSON.parse(localStorage.getItem("MB_Settings")) || mb_defaultSettings;
+        this.debugOverlay.style.display = $settings.display.debugMode ? "block" : "none";
+        if ($settings.display.debugMode) {
+            if (!this.debugInfoInterval) {
+                this.debugInfoInterval = setInterval(() => {
+                    var $thisLoop = new Date();
+                    var $fps = 1000 / (this.fpsLoop - $thisLoop);
+                    this.debugOverlay.innerText = `
+                        FPS: ${$fps}
+                        UserAgent: ${navigator.userAgent}
+                    `;
+                });
+            }
+        } else {
+            if (this.debugInfoInterval) clearInterval(this.debugInfoInterval);
+        }
     }
 }
 
@@ -467,7 +493,7 @@ asyncLoadController.initLoadOperation([
             compact: true,
             
         });
-        storageManager = new MB_StorageManager(settingsEditor);
+        storageManager = new MB_StorageManager(settingsEditor, document.getElementById("debugOverlay"));
         storageManager.setupEditors();
     }),
     new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {

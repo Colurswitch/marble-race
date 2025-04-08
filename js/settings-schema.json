@@ -91,7 +91,8 @@
                         },
                         "gamepadVibration": {
                             "title": "Use gamepad vibration (if supported)",
-                            "type": "boolean"
+                            "type": "boolean",
+                            "format": "checkbox"
                         }
                     }
                 }
