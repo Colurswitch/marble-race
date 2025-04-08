@@ -444,10 +444,12 @@ asyncLoadController.initLoadOperation([
             console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
         }
     }),
-    new MB_AsyncLoadOperation("Loading external resources...", MB_ResourceLoader.loadFilesFromURLs([
-        new MB_ExternalResource("https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js", "js"),
-        new MB_ExternalResource("https://code.jquery.com/jquery-3.7.1.min.js", "js"),
-    ])),
+    new MB_AsyncLoadOperation("Loading external resources...", () => {
+        MB_ResourceLoader.loadFilesFromURLs([
+            new MB_ExternalResource("https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js", "js"),
+            new MB_ExternalResource("https://code.jquery.com/jquery-3.7.1.min.js", "js"),
+        ]);
+    }),
     new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
         settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
             schema: mb_defaultSettings,
