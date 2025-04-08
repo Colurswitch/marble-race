@@ -23,6 +23,6 @@
     font-weight: bold;
     src: url("ProductSans-BoldItalic.ttf");
 }
-body {
+body * {
     font-family: "Product Sans" !important;
 }

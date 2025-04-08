@@ -6,18 +6,21 @@
     <title>Marble Race</title>
     <link rel="stylesheet" href="css/product-sans.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="js/index.js" type="module" defer></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- THREE.js for WebGL graphics -->
     <script type="importmap">
         {
             "imports": {
               "three": "https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js",
-              "three/addons/": "https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/"
+              "three/addons/": "https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/",
+              "supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"
             }
         }
     </script>
+    <script src="js/index.js" type="module" defer></script>
     <style>
         body {
             margin: 0;
@@ -60,7 +63,7 @@
             text-align: center;
         }
 
-        .input, .select, input[type=text], input[type=color], select, textarea {
+        .input, .select, input[type=text], input[type=password], input[type=color], select, textarea {
             text-align: start;
             justify-content: flex-start;
             margin: 5px;
@@ -138,6 +141,42 @@
             z-index: 1000;
         }
 
+        #toastContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: calc(100% - 10px);
+            height: calc(100vh - 10px);
+            pointer-events: none;
+            padding: 5px;
+            overflow: auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        #toastContainer .toast {
+            position: absolute;
+            width: 100%;
+            max-width: 250px;
+            padding: 10px;
+            background-color: rgba(185, 185, 185, .5);
+            border-radius: 5px;
+            animation: toastPop 0.5s;
+        }
+
+        @keyframes toastPop {
+            from {
+                transform: translateY(100%);
+                opacity: 0
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
         @media only screen and (max-width: 768px) {
             
         }
@@ -154,7 +193,7 @@
                 <i class="material-icons icon">play_arrow</i>
                 <span>Play</span>
             </button>
-            <button class="is-large" onclick="loadAccount()">
+            <button class="is-large" onclick="document.getElementById('accountScreen').style.display = 'flex';">
                 <i class="material-icons icon">person</i>
                 <span>Account</span>
             </button>
@@ -186,6 +225,36 @@
             <span>Back</span>
         </button>
     </stretch>
+    <stretch id="accountScreen" style="display: none; align-items: center; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 40px);">
+        <h1>Account</h1>
+        <div style="min-width: 400px; display: flex; flex-direction: column; align-items: stretch;">
+            <label for="username">Email:</label>
+            <input type="text" id="accountEmailInput" placeholder="Enter your username">
+            <label for="password">Password:</label>
+            <input type="password" id="accountPasswordInput" placeholder="Enter your password">
+            <span id="accountError" style="color: red"></span>
+            <button class="button" id="accountSIBtn" style="margin-top: 10px;">
+                <i class="material-icons icon">check</i>
+                <span>Sign in</span>
+            </button>
+            <button class="button" onclick="alert('To create an account please visit CL website.')">
+                <i class="material-icons icon">add</i>
+                <span>Create account</span>
+            </button>
+            <img src="img/texture/default.png" width="100" height="100" id="accountImage" style="border-radius: 50%;">
+            <h3 id="accountDisplayName">
+                Signed in as <strong>User</strong>
+            </h3>
+            <button class="button" id="accountSignOutBtn">
+                <i class="material-icons icon">logout</i>
+                <span>Sign out</span>
+            </button>
+            <button class="button" onclick="document.getElementById('accountScreen').style.display = 'none';">
+                <i class="material-icons icon">arrow_back</i>
+                <span>Back</span>
+            </button>
+        </div>
+    </stretch>
     <stretch id="settingsScreen" style="display: none; align-items: flex-start; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 20px">
         <h1>Settings</h1>
         <div id="settingsContainer"></div>
@@ -213,6 +282,7 @@
         <img src="img/marble_race_logo.png" alt="Marble Race" width="150">
         <p>Your browser does not support WebGL. The game has been disabled.</p>
     </stretch>
+    <div id="toastContainer"></div>
     <noscript>Please enable JavaScript.</noscript>
     <!-- Other JavaScript files, CSS files, and external libraries go here -->
 </body>

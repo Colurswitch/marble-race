@@ -1,6 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js'; // Three.js
-import mb_settingsSchema from './settings-schema.json' with {type: "json"};
 import mb_defaultSettings from './settings-default.json' with {type: "json"};
+import mb_settingsSchema from './settings-schema.json' with {type: "json"};
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest'; // Supabase
 
 class MB_AsyncLoadOperation {
     /**
@@ -353,8 +355,7 @@ class MB_StorageManager {
         if ($settings.display.debugMode) {
             if (!this.debugInfoInterval) {
                 this.debugInfoInterval = setInterval(() => {
-                    var $thisLoop = new Date();
-                    var $fps = 1000 / (this.fpsLoop - $thisLoop);
+                    var $fps = Math.round(1000 / performance.now());
                     this.debugOverlay.innerText = `
                         FPS: ${$fps}
                         UserAgent: ${navigator.userAgent}
@@ -362,8 +363,149 @@ class MB_StorageManager {
                 });
             }
         } else {
-            if (this.debugInfoInterval) clearInterval(this.debugInfoInterval);
+            if (this.debugInfoInterval) {
+                clearInterval(this.debugInfoInterval);
+                this.debugInfoInterval = null;
+            }
         }
+    }
+}
+
+class MB_ToastManager {
+    /**
+     * Initializes a new instance of the MB_ToastManager class.
+     * @param {HTMLElement} toastContainer - The HTML element to append toast messages to.
+     * @returns {MB_ToastManager}
+     */
+    constructor(toastContainer) {
+        this.toastContainer = toastContainer;
+    }
+
+    pop(message) {
+        var $toast = document.createElement("div");
+        $toast.classList.add("toast");
+        $toast.innerText = message;
+        this.toastContainer.appendChild($toast);
+        setTimeout(() => {
+            $toast.remove();
+        }, 5000);
+    }
+}
+
+class MB_AccountManager {
+    /**
+     * Initializes a new instance of the MB_AccountManager class.
+     * @param {Object} options - Configuration options for the account manager.
+     * @param {HTMLInputElement} options.SIEmailInputField - The email input field element for sign-in.
+     * @param {HTMLInputElement} options.SIPasswordInputField - The password input field element for sign-in.
+     * @param {HTMLButtonElement} options.SIBtn - The button element for sign-in action.
+     * @param {HTMLElement} options.SIErrorContainer - The container element for sign-in error messages.
+     * @param {HTMLImageElement} options.accountImage - The image element for the account icon.
+     * @param {HTMLElement} options.accountDisplayName - The display name element for the account.
+     * @param {HTMLButtonElement} options.SOBtn - The button element for sign-out action.
+     * @param {string} options.SUPABASE_URL - The Supabase URL.
+     * @param {string} options.SUPABASE_KEY - The Supabase key.
+     */
+    constructor(options) {
+        this.SIEmailInputField = options.SIEmailInputField;
+        this.SIPasswordInputField = options.SIPasswordInputField;
+        this.SIBtn = options.SIBtn;
+        this.SIBtn.onclick = () => this.signIn(this.SIEmailInputField.value, this.SIPasswordInputField.value);
+        this.SIErrorContainer = options.SIErrorContainer;
+        this.accountImage = options.accountImage;
+        this.accountDisplayName = options.accountDisplayName;
+        this.SOBtn = options.SOBtn;
+        this.SOBtn.onclick = () => this.signOut();
+        this.SUPABASE_URL = options.SUPABASE_URL;
+        this.SUPABASE_KEY = options.SUPABASE_KEY;
+        this.supabase = createClient(this.SUPABASE_URL, this.SUPABASE_KEY);
+        console.log("Supabase instance:", this.supabase);
+        
+    }
+
+    /**
+     * Signs the user in to their account using Supabase authentication.
+     * @param {string} email - The user's email address.
+     * @param {string} password - The user's password.
+     * @returns {Promise<object>} A promise that resolves with the sign-in result.
+     */
+    async signIn(email, password) {
+        const res = await this.supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
+        if (!res.error) {
+            console.log("MB_AccountManager: User was signed in successfully")
+        } else {
+            console.log("MB_AccountManager: Error signing in:", res.error)
+        }
+        console.log("Sign In Result:", res);
+        return res;
+    }
+
+    /**
+     * Retrieves the current authenticated user's information from Supabase.
+     * @returns {Promise<object>} A promise that resolves with the user data. 
+     * The user data is accessible under `res.data.user`.
+     */
+    async getCurrentUser() {
+        const res = await this.supabase.auth.getUser();
+        return res; // User data is under res.data.user
+    }
+
+    /**
+     * Retrieves the user record from the Supabase 'users' table corresponding to the currently signed-in user.
+     * @returns {Promise<object>} A promise that resolves with the user record.
+     */
+    async getCurrentUserRecord() {
+        const res = await this.supabase.from('users').select('*').eq('id', this.getCurrentUser().data.user.id).single();
+        return res;
+    }
+
+
+    /**
+     * Signs the user out of their account using Supabase authentication.
+     * @returns {Promise<object>} A promise that resolves with the sign-out result.
+     */
+    async signOut() {
+        const res = await this.supabase.auth.signOut();
+        return res;
+    }
+    
+    /**
+     * Refreshes the display of the account management UI based on the current user's signed-in status.
+     * If the user is signed in, displays the account image and name, and hides the sign-in form.
+     * If the user is not signed in, displays the sign-in form and hides the account image and name.
+     */
+    async refreshDisplay() {
+        this.getCurrentUser().then(res => {
+            if (res.data.user) {
+                this.getCurrentUserRecord().then(rec => {
+                    this.accountImage.src = rec.data.photo_url;
+                    this.accountDisplayName.innerText = rec.data.display_name;
+                    this.accountDisplayName.style.display = "block";
+                    this.accountImage.style.display = "block";
+                });
+                this.SIBtn.style.display = "none";
+                this.SOBtn.style.display = "block";
+                this.SIEmailInputField.style.display = "none";
+                this.SIPasswordInputField.style.display = "none";
+                this.SIErrorContainer.innerText = "";
+                this.SIErrorContainer.style.display = "none";
+            } else {
+                // User is not signed in
+                this.accountImage.style.display = "none";
+                this.accountDisplayName.style.display = "none";
+                this.accountImage.src = "";
+                this.accountDisplayName.innerText = "";
+                this.SIBtn.style.display = "block";
+                this.SOBtn.style.display = "none";
+                this.SIEmailInputField.style.display = "block";
+                this.SIPasswordInputField.style.display = "block";
+                this.SIErrorContainer.innerText = "";
+                this.SIErrorContainer.style.display = "block";
+            }
+        })
     }
 }
 
@@ -453,7 +595,18 @@ const asyncLoadController = new MB_AsyncLoadController({
 const inputManager = new MB_InputManager(2);
 const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreen"));
 const audioManager = new MB_AudioManager();
+const toastManager = new MB_ToastManager(document.getElementById("toastContainer"));
+const accountManager = new MB_AccountManager({
+    SIEmailInputField: document.getElementById("accountEmailInput"),
+    SIPasswordInputField: document.getElementById("accountPasswordInput"),
+    SIBtn: document.getElementById("accountSIBtn"),
+    SIErrorContainer: document.getElementById("accountError"),
+    accountImage: document.getElementById("accountImage"),
+    accountDisplayName: document.getElementById("accountDisplayName"),
+});
 var storageManager;
+
+
 
 // Check compatibility
 asyncLoadController.initLoadOperation([
@@ -495,6 +648,9 @@ asyncLoadController.initLoadOperation([
         });
         storageManager = new MB_StorageManager(settingsEditor, document.getElementById("debugOverlay"));
         storageManager.setupEditors();
+    }),
+    new MB_AsyncLoadOperation("Loading toast...", () => {
+        toastManager.pop("This is a toast.")
     }),
     new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {
         // When the user closes the page, display a confirmation before closing
