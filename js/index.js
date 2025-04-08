@@ -603,6 +603,9 @@ const accountManager = new MB_AccountManager({
     SIErrorContainer: document.getElementById("accountError"),
     accountImage: document.getElementById("accountImage"),
     accountDisplayName: document.getElementById("accountDisplayName"),
+    SOBtn: document.getElementById("accountSignOutBtn"),
+    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwbXN6dHV4cmxydGJueHhyaHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3OTA1MzYsImV4cCI6MjA1NjM2NjUzNn0.wxYd_XO12CKjUeQZ1_MRPnD5o_S8KBK9XDKL0jh1I1I",
+    SUPABASE_URL: "https://kpmsztuxrlrtbnxxrhpj.supabase.co",
 });
 var storageManager;
 
