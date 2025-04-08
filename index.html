@@ -6,6 +6,18 @@
     <title>Marble Race</title>
     <link rel="stylesheet" href="css/product-sans.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="js/index.js" type="module" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- THREE.js for WebGL graphics -->
+    <script type="importmap">
+        {
+            "imports": {
+              "three": "https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js",
+              "three/addons/": "https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/"
+            }
+        }
+    </script>
     <style>
         body {
             margin: 0;
@@ -164,7 +176,7 @@
             <span>Back</span>
         </button>
     </stretch>
-    <stretch id="loadingScreen" style="display: none; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);">
+    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);" class="hidden">
         <div style="width: 100%; max-width: 768px;">
             <div id="loadingText" style="color: white; font-size: 27px; display: flex; justify-content: space-between;">
                 <span id="loadingTextLeft">Loading...</span>
@@ -183,16 +195,6 @@
         <img src="img/marble_race_logo.png" alt="Marble Race" width="150">
         <p>Your browser does not support WebGL. The game has been disabled.</p>
     </stretch>
-    <script src="js/index.js" type="module"></script>
-    <!-- THREE.js for WebGL graphics -->
-    <script type="importmap">
-        {
-            "imports": {
-              "three": "https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js",
-              "three/addons/": "https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/"
-            }
-        }
-    </script>
     <noscript>Please enable JavaScript.</noscript>
     <!-- Other JavaScript files, CSS files, and external libraries go here -->
 </body>

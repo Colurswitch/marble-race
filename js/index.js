@@ -61,11 +61,11 @@ class MB_AsyncLoadController {
         if (this.loadingScreen) this.loadingScreen.classList.remove("hidden");
         const funcs = funcList.map(f => f.func);
         const promiseSequence = funcs.reduce((promise, func, idx) => {
-            return promise.then(async () => {
+            return promise.then(() => {
                 this.loadingText.textContent = funcList[idx].text;
                 this.loadingProgressBar.style.width = `${Math.round((100 / funcList.length) * idx)}%`;
                 this.loadingPercentage.textContent = `${Math.round((100 / funcList.length) * idx)}%`;
-                await func()
+                func()
             });
         }, Promise.resolve());
         // Resolve the promise sequence when all functions have been executed
@@ -443,12 +443,6 @@ asyncLoadController.initLoadOperation([
         if (navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
             console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
         }
-    }),
-    new MB_AsyncLoadOperation("Loading external resources...", () => {
-        MB_ResourceLoader.loadFilesFromURLs([
-            new MB_ExternalResource("https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js", "js"),
-            new MB_ExternalResource("https://code.jquery.com/jquery-3.7.1.min.js", "js"),
-        ]);
     }),
     new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
         settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
