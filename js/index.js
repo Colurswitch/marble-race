@@ -319,10 +319,19 @@ class MB_StorageManager {
      * @returns {void}
      */
     setupEditors() {
-        this.settingsEditor.setValue(
-            JSON.parse(localStorage.getItem("MB_Settings")) ||
-            mb_defaultSettings
-        );
+        if (this.settingsEditor.ready) {
+            this.settingsEditor.setValue(
+                JSON.parse(localStorage.getItem("MB_Settings")) ||
+                mb_defaultSettings
+            );
+        } else {
+            this.settingsEditor.on("ready", () => {
+                this.settingsEditor.setValue(
+                    JSON.parse(localStorage.getItem("MB_Settings")) ||
+                    mb_defaultSettings
+                );
+            })
+        }
         this.settingsEditor.on("change", () => {
             if (this.settingsEditor.validate().length) {
                 console.error("MB_StorageManager: Error while parsing new settings:", this.settingsEditor.validate())
