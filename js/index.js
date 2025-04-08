@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@latest/build/three.mo
 import mb_defaultSettings from './settings-default.json' with {type: "json"};
 import mb_settingsSchema from './settings-schema.json' with {type: "json"};
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest'; // Supabase
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'; // Supabase
 
 class MB_AsyncLoadOperation {
     /**
