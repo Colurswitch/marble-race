@@ -455,9 +455,7 @@ asyncLoadController.initLoadOperation([
     }),
     new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
         settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
-            schema: {
-                $ref: "settings-schema.json"
-            },
+            schema: mb_settingsSchema,
             theme: "barebones",
             required_by_default: true,
             disable_collapse: true,
