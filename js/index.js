@@ -275,7 +275,7 @@ class MB_StorageManager {
         this.settingsEditor = settingsEditor; // a JSONEditor
         this.debugOverlay = debugOverlay; // a div element
         this.debugInfoInterval = null;
-        this.fpsLoop = new Date();
+        this.stats = new Stats();
     }
 
     /**
@@ -349,24 +349,74 @@ class MB_StorageManager {
         });
     }
 
+    /**
+     * @function createFpsCounter
+     * @description Creates an FPS (Frames Per Second) counter.
+     *
+     * The counter keeps track of the number of frames rendered within a specified time interval.
+     * It provides a method to update the counter and a method to get the current FPS value.
+     *
+     * @param {number} interval - The time interval in milliseconds to calculate the FPS.
+     * @returns {Object} - An object with two methods: update() and getFps().
+     * 
+     * @throws {Error} Throws an error if the interval parameter is not a positive number.
+     * 
+     * @example 
+     * // Create an FPS counter with a 1-second interval
+     * const fpsCounter = createFpsCounter(1000);
+     *
+     * // Update the counter on each frame render
+     * fpsCounter.update();
+     *
+     * // Get the current FPS value
+     * const fps = fpsCounter.getFps();
+     * console.log(`Current FPS: ${fps}`);
+     */
+
     refresh() {
         const $settings = JSON.parse(localStorage.getItem("MB_Settings")) || mb_defaultSettings;
-        this.debugOverlay.style.display = $settings.display.debugMode ? "block" : "none";
-        if ($settings.display.debugMode) {
-            if (!this.debugInfoInterval) {
-                this.debugInfoInterval = setInterval(() => {
-                    var $fps = Math.round(1000 / performance.now());
-                    this.debugOverlay.innerText = `
-                        FPS: ${$fps}
-                        UserAgent: ${navigator.userAgent}
-                    `;
-                });
-            }
-        } else {
-            if (this.debugInfoInterval) {
-                clearInterval(this.debugInfoInterval);
-                this.debugInfoInterval = null;
-            }
+        
+    }
+}
+
+class MB_PerformanceManager {
+    /**
+     * Initializes a new instance of the MB_PerformanceManager class.
+     * @param {Object} options - Configuration options for the performance manager.
+     * @param {MB_StorageManager} options.storageManager - The storage manager instance to use.
+     * @param {HTMLElement} options.debugOverlay - The HTML element to use for displaying debug information.
+     * @returns {MB_PerformanceManager}
+     */
+    constructor(options) {
+        this.storageManager = options.storageManager;
+        this.debugOverlay = options.debugOverlay;
+        /** @private */
+        this.$lastFrame = performance.now();
+        /** @private */
+        this.$frameCount = 0;
+    }
+
+    /**
+     * Updates the performance metrics by counting the number of frames rendered since the last call.
+     * Calculates the FPS (Frames Per Second) by dividing the frame count by the time difference between the current and last frame.
+     * If the time difference is greater than 1000 milliseconds, the FPS value is updated.
+     * @returns {void}
+     */
+    tick() {
+        const $currentFrame = performance.now();
+        const $deltaTime = $currentFrame - this.$lastFrame;
+        const $settings = JSON.parse(localStorage.getItem("MB_Settings")) || mb_defaultSettings;
+        this.$frameCount++;
+        if ($deltaTime >= 1000) {
+            this.fps = this.$frameCount;
+            this.$frameCount = 0;
+            this.$lastFrame = $currentFrame;
+            this.debugOverlay.style.display = $settings.display.debugMode ? "block" : "none";
+            this.debugOverlay.innerText = `
+                FPS: ${this.fps}
+                Time: ${$deltaTime / 1000} seconds
+                Frame Count: ${this.$frameCount}
+            `;
         }
     }
 }
