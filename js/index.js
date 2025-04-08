@@ -1,6 +1,6 @@
-import * as THREE from 'three'; // Three.js
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js'; // Three.js
 import mb_settingsSchema from './settings-schema.json' with {type: "json"};
-import mb_defaultSettings from './settings-default.json' with {type: "json"}
+import mb_defaultSettings from './settings-default.json' with {type: "json"};
 
 class MB_AsyncLoadOperation {
     /**
@@ -455,14 +455,19 @@ asyncLoadController.initLoadOperation([
     }),
     new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
         settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
-            schema: mb_defaultSettings,
+            schema: {
+                $ref: "settings-schema.json"
+            },
             theme: "barebones",
             required_by_default: true,
             disable_collapse: true,
             disable_edit_json: true,
+            disable_properties: true,
+            no_additional_properties: true,
             show_errors: "change",
             enable_array_copy: false,
             compact: true,
+            
         });
         storageManager = new MB_StorageManager(settingsEditor);
         storageManager.setupEditors();
