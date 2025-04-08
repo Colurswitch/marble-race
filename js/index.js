@@ -657,6 +657,7 @@ const accountManager = new MB_AccountManager({
     SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwbXN6dHV4cmxydGJueHhyaHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3OTA1MzYsImV4cCI6MjA1NjM2NjUzNn0.wxYd_XO12CKjUeQZ1_MRPnD5o_S8KBK9XDKL0jh1I1I",
     SUPABASE_URL: "https://kpmsztuxrlrtbnxxrhpj.supabase.co",
 });
+var performanceManager;
 var storageManager;
 
 
@@ -697,13 +698,18 @@ asyncLoadController.initLoadOperation([
             show_errors: "change",
             enable_array_copy: false,
             compact: true,
-            
         });
         storageManager = new MB_StorageManager(settingsEditor, document.getElementById("debugOverlay"));
         storageManager.setupEditors();
     }),
     new MB_AsyncLoadOperation("Loading toast...", () => {
         toastManager.pop("This is a toast.")
+    }),
+    new MB_AsyncLoadOperation("Loading performance manager...", () => {
+        performanceManager = new MB_PerformanceManager({
+            storageManager: storageManager,
+            debugOverlay: document.getElementById("debugOverlay"),
+        });
     }),
     new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {
         // When the user closes the page, display a confirmation before closing
