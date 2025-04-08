@@ -456,7 +456,13 @@ asyncLoadController.initLoadOperation([
     new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
         settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
             schema: mb_defaultSettings,
-            theme: "barebones"
+            theme: "barebones",
+            required_by_default: true,
+            disable_collapse: true,
+            disable_edit_json: true,
+            show_errors: "change",
+            enable_array_copy: false,
+            compact: true,
         });
         storageManager = new MB_StorageManager(settingsEditor);
         storageManager.setupEditors();

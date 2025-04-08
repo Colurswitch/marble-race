@@ -72,6 +72,14 @@
                                 "rightJoystick"
                             ]
                         },
+                        "playPause": {
+                            "title": "Play/Pause",
+                            "type": "string",
+                            "enum": [
+                                "start",
+                                "select"
+                            ]
+                        },
                         "playerMovement": {
                             "title": "Player Movement",
                             "type": "string",

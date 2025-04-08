@@ -15,6 +15,7 @@
         "gamepadControls": {
             "playerMovement": "leftJoystick",
             "uiNavigation": "dPad",
+            "playPause": "start",
             "gamepadVibration": true
         }
     }
