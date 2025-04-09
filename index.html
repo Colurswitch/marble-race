@@ -116,6 +116,50 @@
             margin-bottom: 10px;
         }
 
+        .top-bar {
+            width: 100%;
+            height: 45px;
+            background: rgba(185, 185, 185, .1);
+            border-radius: 5px;
+            backdrop-filter: blur(5px) brightness(50%);
+            display: flex;
+            justify-content: start;
+            gap: 5px;
+        }
+        
+        .top-bar button, .top-bar a, .top-bar .button {
+            width: 45px;
+            height: 45px;
+        }
+        
+        .top-bar input {
+            height: 25px;
+            margin: 0
+        }
+
+        .campaign-item {
+            width: 300px;
+            height: 170px;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+            outline: 0px solid white;
+            background-color: rgba(185, 185, 185, .5);
+            transition: all .125s linear;
+        }
+
+        .campaign-item:hover {
+            outline-width: 3px;
+        }
+
+        .campaign-item h1, .campaign-item h2 {
+            margin: 5px;
+        }
+
+        .campaign-item h2 {
+            color: rgb(185, 185, 185);
+        }
+
         #loadingProgress {
             width: 100%;
             height: 15px;
@@ -136,9 +180,10 @@
             width: 250px;
             padding: 5px;
             height: auto;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.3);
             color: yellow;
             font-size: small;
+            pointer-events: none;
             z-index: 1000;
         }
 
@@ -164,6 +209,7 @@
             max-width: 250px;
             padding: 10px;
             background-color: rgba(185, 185, 185, .5);
+            color: white;
             border-radius: 5px;
             animation: toastPop 0.5s;
         }
@@ -190,7 +236,7 @@
     <stretch id="homeScreen" style="align-items: flex-end; justify-content: flex-end;">
         <canvas id="homeScreenCanvas" style="width: 100%; height: 100vh; position: absolute; top: 0; left: 0;"></canvas>
         <div style="margin: 10px; display: flex; flex-direction: column;">
-            <button class="is-large" onclick="loadGame()">
+            <button class="is-large" onclick="document.getElementById('campaignsScreen').style.display = 'flex';">
                 <i class="material-icons icon">play_arrow</i>
                 <span>Play</span>
             </button>
@@ -260,6 +306,60 @@
         <h1>Settings</h1>
         <div id="settingsContainer"></div>
         <button class="button" onclick="document.getElementById('settingsScreen').style.display = 'none';">
+            <i class="material-icons icon">arrow_back</i>
+            <span>Back</span>
+        </button>
+    </stretch>
+    <stretch id="campaignsScreen" style="display: none; justify-content: flex-start; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 10px; width: calc(100% - 20px); height: calc(100vh - 20px);">
+        <div class="top-bar">
+            <button onclick="document.getElementById('campaignsScreen').style.display = 'none';">
+                <i class="material-icons icon">arrow_back</i>
+            </button>
+            <input type="text" id="campaignSearchInput" placeholder="Search for campaigns">
+            <button id="campaignCreateBtn">
+                <i class="material-icons icon">add</i>
+            </button>
+        </div>
+        <div id="campaignsList" style="width: 100%; display: flex; justify-content: space-evenly; flex-wrap: wrap;">
+            <div class="campaign-item">
+                <h1>Title</h1>
+                <h2>Description...</h2>
+            </div>
+            <div class="campaign-item">
+                <h1>Title</h1>
+                <h2>Description...</h2>
+            </div>
+            <div class="campaign-item">
+                <h1>Title</h1>
+                <h2>Description...</h2>
+            </div>
+            <div class="campaign-item">
+                <h1>Title</h1>
+                <h2>Description...</h2>
+            </div>
+        </div>
+    </stretch>
+    <stretch id="campaignScreen" style="display: flex; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 20px); height: calc(100vh - 20px);">
+        <div id="campaignInfoContainer">
+            <h1>Title</h1>
+            <h2>Description...</h2>
+        </div>
+        <div style="display: flex; justify-content: stretch; gap: 10px; height: 60px;">
+            <button class="is-large" id="campaignRaceBtn">
+                <i class="material-icons icon">sports_score</i>
+                <span>Race</span>
+            </button>
+            <button class="is-large" id="campaignArenaBtn">
+                <i class="material-icons icon">stadium</i>
+                <span>Arena</span>
+            </button>
+            <button class="is-large" style="height: 50px;" id="campaignSandboxBtn">
+                <i class="material-icons icon">aspect_ratio</i>
+                <span>Sandbox</span>
+            </button>
+        </div>
+        <p>by User</p>
+        <button class="button" onclick="document.getElementById('campaignScreen').style.display = 'none';">
             <i class="material-icons icon">arrow_back</i>
             <span>Back</span>
         </button>

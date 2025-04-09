@@ -162,6 +162,107 @@ class MB_InputManager {
     }
 }
 
+class MB_GamepadManager {
+    /**
+     * Initializes a new instance of the MB_GamepadManager class.
+     * @param {MB_InputManager} inputManager - The input manager instance to use.
+     * @returns {MB_GamepadManager}
+     */
+    constructor(inputManager) {
+        this.inputManager = inputManager;
+        window.addEventListener("gamepadconnected", event => {
+            console.log(
+                "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                e.gamepad.index,
+                e.gamepad.id,
+                e.gamepad.buttons.length,
+                e.gamepad.axes.length,
+            );
+        });
+        window.addEventListener("gamepaddisconnected", event => {
+            console.log(
+                "Gamepad disconnected at index %d: %s.",
+                e.gamepad.index,
+                e.gamepad.id,
+            );
+        });
+    }
+
+    vibrateGamepad(intensity, duration) {
+        if (navigator.getGamepads) {
+            const gamepads = navigator.getGamepads();
+            if (gamepads.length > 0) {
+                gamepads[0].vibrationActuator.playEffect("dual-rumble", {
+                    duration: duration,
+                    weakMagnitude: intensity,
+                    strongMagnitude: intensity,
+                });
+            } else {
+                console.error("No gamepads found.");
+            }
+        } else {
+            console.error("Gamepad vibration is not supported in this browser.");
+        }
+    }
+
+    getLeftStick() {
+        const gamepads = navigator.getGamepads();
+        if (gamepads.length > 0) {
+            const gamepad = gamepads[0];
+            if (gamepad.axes.length > 0) {
+                return new THREE.Vector2(gamepad.axes[0] * this.inputManager.inputThreshold, gamepad.axes[1] * this.inputManager.inputThreshold);
+            } else {
+                console.error("Gamepad axes are not available.");
+            }
+        } else {
+            console.error("No gamepads found.");
+        }
+    }
+
+    getRightStick() {
+        const gamepads = navigator.getGamepads();
+        if (gamepads.length > 0) {
+            const gamepad = gamepads[0];
+            if (gamepad.axes.length > 0) {
+                return new THREE.Vector2(gamepad.axes[2] * this.inputManager.inputThreshold, gamepad.axes[3] * this.inputManager.inputThreshold);
+            } else {
+                console.error("Gamepad axes are not available.");
+            }
+        } else {
+            console.error("No gamepads found.");
+        }
+    }
+
+    getLeftTrigger() {
+        const gamepads = navigator.getGamepads();
+        if (gamepads.length > 0) {
+            const gamepad = gamepads[0];
+            if (gamepad.buttons.length > 0) {
+                return gamepad.buttons[0].value;
+            } else {
+                console.error("Gamepad buttons are not available.");
+            }
+        } else {
+            console.error("No gamepads found.");
+        }
+    }
+
+    getRightTrigger() {
+        const gamepads = navigator.getGamepads();
+        if (gamepads.length > 0) {
+            const gamepad = gamepads[0];
+            if (gamepad.buttons.length > 0) {
+                return gamepad.buttons[1].value;
+            } else {
+                console.error("Gamepad buttons are not available.");
+            }
+        } else {
+            console.error("No gamepads found.");
+        }
+    }
+
+}
+
 class MB_AudioManager {
     /**
      * Initializes a new instance of the MB_AudioManager class.
@@ -384,11 +485,13 @@ class MB_PerformanceManager {
      * Initializes a new instance of the MB_PerformanceManager class.
      * @param {Object} options - Configuration options for the performance manager.
      * @param {MB_StorageManager} options.storageManager - The storage manager instance to use.
+     * @param {MB_InputManager} options.inputManager - The input manager instance to use.
      * @param {HTMLElement} options.debugOverlay - The HTML element to use for displaying debug information.
      * @returns {MB_PerformanceManager}
      */
     constructor(options) {
         this.storageManager = options.storageManager;
+        this.inputManager = options.inputManager;
         this.debugOverlay = options.debugOverlay;
         /** @private */
         this.$lastFrame = performance.now();
@@ -416,6 +519,7 @@ class MB_PerformanceManager {
                 FPS: ${this.fps}
                 Time: ${$deltaTime / 1000} seconds
                 Frame Count: ${this.$frameCount}
+                PlayerMovement: ${this.inputManager.playerMovementInput.toString()}
             `;
         }
     }
@@ -470,7 +574,7 @@ class MB_AccountManager {
         this.SUPABASE_KEY = options.SUPABASE_KEY;
         this.supabase = createClient(this.SUPABASE_URL, this.SUPABASE_KEY);
         console.log("Supabase instance:", this.supabase);
-        
+        this.refreshDisplay();
     }
 
     /**
@@ -490,6 +594,7 @@ class MB_AccountManager {
             console.log("MB_AccountManager: Error signing in:", res.error)
         }
         console.log("Sign In Result:", res);
+        this.refreshDisplay();
         return res;
     }
 
@@ -519,6 +624,7 @@ class MB_AccountManager {
      */
     async signOut() {
         const res = await this.supabase.auth.signOut();
+        this.refreshDisplay();
         return res;
     }
     
@@ -557,6 +663,78 @@ class MB_AccountManager {
             }
         })
     }
+}
+
+class MB_User {
+    constructor(options) {
+        this.display_name = options.display_name;
+        this.photo_url = options.photo_url;
+    }
+}
+
+class MB_Chapter {
+    /**
+     * Initializes a new instance of the MB_Chapter class.
+     * @param {Object} options - Configuration options for the chapter.
+     * @param {string} options.name - The name of the chapter.
+     * @param {string} options.thumbnail_url - The URL of the thumbnail image for the chapter.
+     * @param {Array<MB_Level>} options.levels - An array of levels belonging to the chapter.
+     * @param {string} options.id - The unique identifier for the chapter.
+     * @returns {MB_Chapter}
+     */
+    constructor(options) {
+        this.name = options.name;
+        this.thumbnail_url = options.thumbnail_url;
+        this.id = options.id;
+    }
+}
+
+class MB_Campaign {
+    /**
+     * Initializes a new instance of the MB_Campaign class.
+     * @param {Object} options - Configuration options for the campaign.
+     * @param {string} options.name - The name of the campaign.
+     * @param {string} options.description - The description of the campaign
+     * @param {string} options.thumbnail_url - The URL of the thumbnail image for the campaign.
+     * @param {MB_User} [options.owner] - The owner of the campaign.
+     * @param {Array<MB_Chapter>} options.chapters - An array of chapters belonging to the campaign.
+     * @param {string} options.id - The unique identifier for the campaign.
+     * @returns {MB_Campaign}
+     */
+    constructor(options) {
+        this.name = options.name;
+        this.description = options.description;
+        this.thumbnail_url = options.thumbnail_url;
+        this.owner = options.owner;
+        this.chapters = options.chapters;
+        this.id = options.id;
+    }
+}
+
+class MB_Level {
+    /**
+     * Initializes a new instance of the MB_Level class.
+     * @param {Object} options - Configuration options for the level.
+     * @param {string} options.name - The name of the level.
+     * @param {string} options.thumbnail_url - The URL of the thumbnail image for the level.
+     * @param {Object} options.data - The data associated with the level.
+     * @param {string} options.id - The unique identifier for the level.
+     * @returns {MB_Level}
+     */
+    constructor(options) {
+        this.name = options.name;
+        this.thumbnail_url = options.thumbnail_url;
+        this.id = options.id;
+        this.data = options.data;
+    }
+}
+
+class MB_LevelManager {
+    constructor(options) {
+        this.timerContainer = options.timerContainer;
+    }
+
+    loadLevel(level) {}
 }
 
 class MB_HomeCanvasManager {
@@ -662,67 +840,69 @@ var storageManager;
 
 
 
-// Check compatibility
-asyncLoadController.initLoadOperation([
-    new MB_AsyncLoadOperation("Checking compatibility...",() => {
-        // Does the browser support WebGL?
-        if (!webGLSupported()) {
-            document.getElementById("noSupport").style.display = "flex";
-            throw new Error("Current browser does not support WebGL.");
-        };
-        // Does the browser support WebSockets?
-        if (!webSocketsSupported()) {
-            console.warn("The current browser does not support WebSockets. The game will still be playable, but online play is disabled.");
-            onlinePlayEnabled = false;
-        }
-        // Is the Gamepad API supported?
-        if (!navigator.getGamepads()) {
-            console.warn("The current browser does not support Gamepad API. The game will still be playable, but use of gamepads is disabled.");
-            gamepadSupported = false;
-        }
-        // 
-        // Internet Explorer?
-        if (navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
-            console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
-        }
-    }),
-    new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
-        settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
-            schema: mb_settingsSchema,
-            theme: "barebones",
-            required_by_default: true,
-            disable_collapse: true,
-            disable_edit_json: true,
-            disable_properties: true,
-            no_additional_properties: true,
-            show_errors: "change",
-            enable_array_copy: false,
-            compact: true,
-        });
-        storageManager = new MB_StorageManager(settingsEditor, document.getElementById("debugOverlay"));
-        storageManager.setupEditors();
-    }),
-    new MB_AsyncLoadOperation("Loading toast...", () => {
-        toastManager.pop("This is a toast.")
-    }),
-    new MB_AsyncLoadOperation("Loading performance manager...", () => {
-        performanceManager = new MB_PerformanceManager({
-            storageManager: storageManager,
-            debugOverlay: document.getElementById("debugOverlay"),
-        });
-    }),
-    new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {
-        // When the user closes the page, display a confirmation before closing
-        window.addEventListener("beforeunload", function(event) {
-            event.preventDefault();
-            event.returnValue = "Are you sure you want to exit the game?";
-            return "Are you sure you want to exit the game?";
-        });
-    }),
-    new MB_AsyncLoadOperation("Loading main menu...",() => {
-        // Create a new WebGL viewport
-        homeCanvasManager.create3DViewport();
-    })
-], function() {
-
-});
+window.onload = () => {
+    asyncLoadController.initLoadOperation([
+        new MB_AsyncLoadOperation("Checking compatibility...",() => {
+            // Does the browser support WebGL?
+            if (!webGLSupported()) {
+                document.getElementById("noSupport").style.display = "flex";
+                throw new Error("Current browser does not support WebGL.");
+            };
+            // Does the browser support WebSockets?
+            if (!webSocketsSupported()) {
+                console.warn("The current browser does not support WebSockets. The game will still be playable, but online play is disabled.");
+                onlinePlayEnabled = false;
+            }
+            // Is the Gamepad API supported?
+            if (!navigator.getGamepads()) {
+                console.warn("The current browser does not support Gamepad API. The game will still be playable, but use of gamepads is disabled.");
+                gamepadSupported = false;
+            }
+            // 
+            // Internet Explorer?
+            if (navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
+                console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
+            }
+        }),
+        new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
+            settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
+                schema: mb_settingsSchema,
+                theme: "barebones",
+                required_by_default: true,
+                disable_collapse: true,
+                disable_edit_json: true,
+                disable_properties: true,
+                no_additional_properties: true,
+                show_errors: "change",
+                enable_array_copy: false,
+                compact: true,
+            });
+            storageManager = new MB_StorageManager(settingsEditor, document.getElementById("debugOverlay"));
+            storageManager.setupEditors();
+        }),
+        new MB_AsyncLoadOperation("Loading toast...", () => {
+            toastManager.pop("This is a toast.")
+        }),
+        new MB_AsyncLoadOperation("Loading performance manager...", () => {
+            performanceManager = new MB_PerformanceManager({
+                storageManager: storageManager,
+                inputManager: inputManager,
+                debugOverlay: document.getElementById("debugOverlay"),
+            });
+        }),
+        new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {
+            // When the user closes the page, display a confirmation before closing
+            window.addEventListener("beforeunload", function(event) {
+                event.preventDefault();
+                event.returnValue = "Are you sure you want to exit the game?";
+                return "Are you sure you want to exit the game?";
+            });
+        }),
+        new MB_AsyncLoadOperation("Loading main menu...",() => {
+            // Create a new WebGL viewport
+            homeCanvasManager.create3DViewport();
+        })
+    ], function() {
+    
+    });
+}
