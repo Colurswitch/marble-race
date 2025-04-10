@@ -1,8 +1,9 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js'; // Three.js
+const Ably = require("ably");
+import { createClient } from 'supabase-js'; // Supabase
+import * as THREE from 'three'; // Three.js
+
 import mb_defaultSettings from './settings-default.json' with {type: "json"};
 import mb_settingsSchema from './settings-schema.json' with {type: "json"};
-
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'; // Supabase
 
 class MB_AsyncLoadOperation {
     /**
@@ -717,6 +718,8 @@ class MB_Level {
      * @param {Object} options - Configuration options for the level.
      * @param {string} options.name - The name of the level.
      * @param {string} options.thumbnail_url - The URL of the thumbnail image for the level.
+     * @param {string} options.description - The description of the level.
+     * @param {'race' | 'sandbox'} options.type - The type of the level.
      * @param {Object} options.data - The data associated with the level.
      * @param {string} options.id - The unique identifier for the level.
      * @returns {MB_Level}
@@ -726,15 +729,155 @@ class MB_Level {
         this.thumbnail_url = options.thumbnail_url;
         this.id = options.id;
         this.data = options.data;
+        this.type = options.type;
+        this.description = options.description;
     }
 }
 
+class MB_StringUtility {
+    /**
+     * Generates a random string of the given length using a specified character set.
+     * @param {number} length - The length of the string to generate.
+     * @param {boolean} [useUppercase=false] - Whether to include uppercase letters in the charset.
+     * @param {boolean} [useNumbers=true] - Whether to include numbers in the charset.
+     * @param {boolean} [useLowercase=true] - Whether to include lowercase letters in the charset.
+     * @param {boolean} [useSpecialChars=false] - Whether to include special characters in the charset.
+     * @returns {string} The generated random string.
+     */
+    static randomString(length, useUppercase = false, useNumbers = true, useLowercase = true, useSpecialChars = false) {
+        const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+        const numberChars = '0123456789';
+        const specialChars = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+        const charset = '';
+        if (useUppercase) charset += uppercaseChars;
+        if (useNumbers) charset += numberChars;
+        if (useLowercase) charset += lowercaseChars;
+        if (useSpecialChars) charset += specialChars;
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return result;
+    }
+}
+
+class MB_MathUtility {
+    /**
+     * Linearly interpolates from a to b by t.
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The value between 0 and 1 inclusive that specifies the interpolation point.
+     * @returns {number} The interpolated value.
+     */
+    static lerp (a, b, t) {
+        return a + (b - a) * t;
+    }
+
+}
+
 class MB_LevelManager {
+    /**
+     * Initializes a new instance of the MB_LevelManager class.
+     * @param {Object} options - Configuration options for the level manager.
+     * @param {HTMLElement} options.timerContainer - The container element for the timer display.
+     * @param {HTMLButtonElement} options.pauseBtn - The button element for pausing the level.
+     * @param {HTMLElement} options.levelScreen - The screen element for displaying the level.
+     * @param {HTMLImageElement} options.levelImageHolder - The element for holding the level image.
+     * @param {HTMLElement} options.levelInfoContainer - The container element for the level information.
+     * @param {HTMLButtonElement} options.levelHostBtn - The button element for hosting the level.
+     * @param {HTMLButtonElement} options.levelCloseHostBtn - The button element for closing the level host.
+     * @param {HTMLInputElement} options.levelJoinCodeDisplay - The element for displaying the join code.
+     * @param {HTMLInputElement} options.levelJoinCodeInput - The input element for entering the join code.
+     * @param {HTMLButtonElement} options.levelPlayBtn - The button element for starting the level.
+     * @param {HTMLElement} options.levelPlayersAmountContainer - The container element for displaying the number of players.
+     * @param {HTMLElement} options.levelJoinedPlayersList - The list element for displaying joined players.
+     * @param {MB_ToastManager} options.toastManager - The toast manager for displaying messages.
+     * @param {MB_NetworkManager} options.networkManager - The network manager for handling network operations.
+     */
     constructor(options) {
         this.timerContainer = options.timerContainer;
+        this.pauseBtn = options.pauseBtn;
+
+        this.levelScreen = options.levelScreen;
+        this.levelImageHolder = options.levelImageHolder;
+        this.levelInfoContainer = options.levelInfoContainer;
+        this.levelHostBtn = options.levelHostBtn;
+        this.levelCloseHostBtn = options.levelCloseHostBtn;
+        this.levelJoinCodeDisplay = options.levelJoinCodeDisplay;
+        this.levelJoinCodeInput = options.levelJoinCodeInput;
+        this.levelPlayBtn = options.levelPlayBtn;
+        this.levelPlayersAmountContainer = options.levelPlayersAmountContainer;
+        this.levelJoinedPlayersList = options.levelJoinedPlayersList;
+
+        this.toastManager = options.toastManager;
+        this.networkManager = options.networkManager;
+    }
+
+    /**
+     * Displays the level on the level screen by setting the level screen's display property to block
+     * and setting the level image holder's src attribute to the thumbnail URL of the level.
+     * @param {MB_Level} level - The level to display.
+     * @returns {void}
+     */
+    displayLevel(level) {
+        this.levelScreen.style.display = "block";
+        this.levelImageHolder.src = level.thumbnail_url;
+        this.levelInfoContainer.innerHTML = `
+            <h1>${level.name}</h1>
+            <p>${level.description}</p>
+        `;
+        
     }
 
     loadLevel(level) {}
+}
+
+class MB_NetworkManager {
+    /**
+     * Initializes a new instance of the MB_NetworkManager class.
+     * @param {Object} options - Configuration options for the network manager.
+     * @param {Object} [options.servers] - Optional configuration for the WebRTC servers to use. If this is not provided, the default servers will be used.
+     * @returns {MB_NetworkManager}
+     */
+    constructor(options) {
+        this.useWebRTC = true;
+        if (!this.webRTCSupported()) {
+            console.warn("MB_NetworkManager: WebRTC is not supported.");
+            this.useWebRTC = false;
+        }
+        this.servers = options.servers || {
+            iceServers: [
+                "stun:stun.l.google.com:19302",
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
+                "stun:stun3.l.google.com:19302",
+                "stun:stun4.l.google.com:19302",
+            ],
+        }; 
+        this.peerConnection = new RTCPeerConnection(this.servers);
+    }
+
+    /**
+     * Checks if WebRTC is supported by the browser.
+     * @returns {boolean} true if WebRTC is supported, false otherwise
+     */
+    webRTCSupported() {
+        try {
+            return "RTCPeerConnection" in window;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    openRoom(callbacks = {onmessage(event){}, onicecandidate(event){}, onerror(event){}, onopen(event){}, onclose(event){}}) {
+        this.currentDataChannel = this.peerConnection.createDataChannel("MB_GameStateChannel_" + MB_StringUtility.randomString(10, false, true, true, false));
+        this.currentDataChannel.onmessage = evt => callbacks.onmessage(evt);
+        this.currentDataChannel.onicecandidate = evt => callbacks.onicecandidate(evt);
+        this.currentDataChannel.onerror = evt => callbacks.onerror(evt);
+        this.currentDataChannel.onopen = evt => callbacks.onopen(evt);
+        this.currentDataChannel.onclose = evt => callbacks.onclose(evt);
+    }
 }
 
 class MB_HomeCanvasManager {
@@ -803,6 +946,14 @@ function webSocketsSupported() {
     }
 }
 
+function webRTCSupported() {
+    try {
+        return "RTCPeerConnection" in window;
+    } catch (e) {
+        return false;
+    }
+}
+
 const onlinePlayEnabled = true;
 const gamepadSupported = true;
 const dataSaving = true;
@@ -860,14 +1011,14 @@ window.onload = () => {
             }
             // 
             // Internet Explorer?
-            if (navigator.userAgent.indexOf("MSIE ") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
+            if (navigator.userAgent.indexOf("MSIE") > -1 || navigator.userAgent.indexOf("Trident/") > -1) {
                 console.warn("Internet Explorer is not supported. The game will still be playable, but some features may not work as expected.");
             }
         }),
         new MB_AsyncLoadOperation("Loading JSONEditors...", () => {
             settingsEditor = new JSONEditor(document.getElementById("settingsContainer"),{
                 schema: mb_settingsSchema,
-                theme: "barebones",
+                theme: "html",
                 required_by_default: true,
                 disable_collapse: true,
                 disable_edit_json: true,

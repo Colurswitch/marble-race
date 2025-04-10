@@ -9,6 +9,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
     <!-- THREE.js for WebGL graphics -->
@@ -17,7 +18,9 @@
             "imports": {
               "three": "https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js",
               "three/addons/": "https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/",
-              "supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"
+              "supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
+              "ably": "https://cdn.ably.com/lib/ably.min-2.js",
+              "simplePeer": "https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"
             }
         }
     </script>
@@ -111,6 +114,17 @@
             transform: scale(1.1);
         }
 
+        .button:active, button:active, input[type=button]:active
+        input[type=submit]:active, input[type=reset]:active {
+            transform: scale(0.9);
+        }
+
+        .button:disabled, button:disabled, input[type=button]:disabled
+        input[type=submit]:disabled, input[type=reset]:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
         .button:not(:last-child), button:not(:last-child), input[type=button]:not(:last-child)
         input[type=submit]:not(:last-child), input[type=reset]:not(:last-child) {
             margin-bottom: 10px;
@@ -146,6 +160,8 @@
             outline: 0px solid white;
             background-color: rgba(185, 185, 185, .5);
             transition: all .125s linear;
+            background-size: cover;
+            background-blend-mode: darken;
         }
 
         .campaign-item:hover {
@@ -158,6 +174,53 @@
 
         .campaign-item h2 {
             color: rgb(185, 185, 185);
+        }
+
+        .campaign-chapters-container {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            justify-content: stretch;
+            width: calc(100% - 40px);
+            max-width: 950px;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+            background-color: rgba(185, 185, 185, .5);
+        }
+
+        .chapter {
+            background-color: rgba(185, 185, 185, .1);
+            background-image: url("https://picsum.photos/0");
+            background-blend-mode: darken;
+            background-size: cover;
+            border-radius: inherit;
+            padding: 20px;
+        }
+
+        .chapter h1, .chapter h2 {
+            margin: 0;
+        }
+
+        .chapter-levels-container {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            border-radius: inherit;
+            gap: 10px;
+        }
+
+        .level {
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 250px;
+            height: 150px;
+            padding: 20px;
+            border-radius: inherit;
+        }
+
+        .level .level-icon {
+            font-size: 30px;
         }
 
         #loadingProgress {
@@ -339,24 +402,75 @@
             </div>
         </div>
     </stretch>
-    <stretch id="campaignScreen" style="display: flex; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 20px); height: calc(100vh - 20px);">
+    <stretch id="campaignScreen" style="display: none; justify-content: flex-start; flex-direction: column; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 40px); height: calc(100vh - 40px);">
+        <div style="height: 300px;"></div>
         <div id="campaignInfoContainer">
             <h1>Title</h1>
             <h2>Description...</h2>
         </div>
-        <div style="display: flex; justify-content: stretch; gap: 10px; height: 60px;">
-            <button class="is-large" id="campaignRaceBtn">
-                <i class="material-icons icon">sports_score</i>
-                <span>Race</span>
-            </button>
-            <button class="is-large" id="campaignArenaBtn">
-                <i class="material-icons icon">stadium</i>
-                <span>Arena</span>
-            </button>
-            <button class="is-large" style="height: 50px;" id="campaignSandboxBtn">
-                <i class="material-icons icon">aspect_ratio</i>
-                <span>Sandbox</span>
-            </button>
+        <div class="campaign-chapters-container" id="campaignChaptersContainer">
+            <div class="chapter">
+                <h1>Chapter Title</h1>
+                <p>Chapter Description...</p>
+                <div class="chapter-levels-container">
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                </div>
+            </div>
+            <div class="chapter">
+                <h1>Chapter Title</h1>
+                <p>Chapter Description...</p>
+                <div class="chapter-levels-container">
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                    <div class="level">
+                        <h1>Level Title</h1>
+                        <p>Level Description...</p>
+                        <i class="material-icons level-icon">sports_score</i>
+                    </div>
+                </div>
+            </div>
         </div>
         <p>by User</p>
         <button class="button" onclick="document.getElementById('campaignScreen').style.display = 'none';">
@@ -364,7 +478,40 @@
             <span>Back</span>
         </button>
     </stretch>
-    <stretch id="loadingScreen" style="display: flex; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);" class="hidden">
+    <stretch id="levelScreen" style="display: flex; justify-content: flex-start; flex-direction: column; gap: 10px; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 40px); height: calc(100vh - 40px);"">
+        <div style="display: flex; width: 100%; gap: 35px; border-radius: 10px; background: rgba(185, 185, 185, .5); backdrop-filter: blur(5px) brightness(50%);">
+            <img src="https://picsum.photos/200" id="levelImage" width="200" height="200" style="object-fit: cover; border-radius: 10px;">
+            <div id="levelInfoContainer">
+                <h1>Title</h1>
+                <p>Description...</p>
+            </div>
+        </div>
+        <div class="top-bar">
+            <button id="levelHostBtn" title="Host level">
+                <i class="material-icons">podcasts</i>
+            </button>
+            <button id="levelCloseHostBtn" title="Close host level" disabled>
+                <i class="material-icons">close</i>
+            </button>
+            <input type="text" id="levelJoinCode" disabled placeholder="Code (if hosted)" value="Code (if hosted)"/>
+            <button id="levelPlayBtn">
+                <i class="material-icons">play_arrow</i>
+            </button>
+            <h3 style="display: inline-flex; gap: 5px; margin: 10px;">
+                <i class="material-icons">person</i>
+                <span id="levelPlayersAmount">0</span>
+            </h3>
+        </div>
+        <ul id="levelJoinedPlayersList">
+            <li>Player</li>
+            <li>Player</li>
+        </ul>
+        <button class="button" onclick="document.getElementById('levelScreen').style.display = 'none';">
+            <i class="material-icons icon">arrow_back</i>
+            <span>Back</span>
+        </button>
+    </stretch>
+    <stretch id="loadingScreen" style="display: none; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);" class="">
         <div style="width: 100%; max-width: 768px;">
             <div id="loadingText" style="color: white; font-size: 27px; display: flex; justify-content: space-between;">
                 <span id="loadingTextLeft">Loading...</span>

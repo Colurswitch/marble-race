@@ -57,7 +57,10 @@
                 "useGamepad": {
                     "title": "Use gamepad",
                     "type": "boolean",
-                    "format": "checkbox"
+                    "format": "checkbox",
+                    "options": {
+                        "hidden": true
+                    }
                 },
                 "gamepadControls": {
                     "title": "Gamepad controls",
@@ -94,6 +97,12 @@
                             "type": "boolean",
                             "format": "checkbox"
                         }
+                    },
+                    "dependencies": {
+                        "root.controls.useGamepad": true
+                    },
+                    "options": {
+                        "hidden": true
                     }
                 }
             }

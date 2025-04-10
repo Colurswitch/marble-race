@@ -1,0 +1,212 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "THREE.js Material",
+    "$id": "three-material-schema.json",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": [
+                "MeshBasicMaterial",
+                "MeshLambertMaterial",
+                "MeshPhongMaterial",
+                "MeshStandardMaterial",
+                "MeshPhysicalMaterial",
+                "MeshDepthMaterial",
+                "MeshNormalMaterial",
+                "ShaderMaterial",
+                "SpriteMaterial",
+                "LineBasicMaterial",
+                "LineDashedMaterial",
+                "PointsMaterial"
+            ]
+        },
+        "color": {
+            "type": "string",
+            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            "format": "color"
+        },
+        "opacity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "transparent": {
+            "type": "boolean",
+            "format": "checkbox"
+        },
+        "wireframe": {
+            "type": "boolean",
+            "format": "checkbox"
+        },
+        "map": {
+            "type": ["string", "null"],
+            "description": "URL of the texture map",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "alphaMap": {
+            "type": ["string", "null"],
+            "description": "URL of the alpha texture",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "aoMap": {
+            "type": ["string", "null"],
+            "description": "Ambient occlusion texture URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "aoMapIntensity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "bumpMap": {
+            "type": ["string", "null"],
+            "description": "Bump map texture URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "bumpScale": {
+            "type": "number"
+        },
+        "normalMap": {
+            "type": ["string", "null"],
+            "description": "Normal map texture URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "normalScale": {
+            "type": "array",
+            "items": [
+                { "type": "number" },
+                { "type": "number" }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "roughness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "metalness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "emissive": {
+            "type": "string",
+            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            "format": "color"
+        },
+        "emissiveIntensity": {
+            "type": "number",
+            "minimum": 0
+        },
+        "emissiveMap": {
+            "type": ["string", "null"],
+            "description": "Emissive texture map URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "displacementMap": {
+            "type": ["string", "null"],
+            "description": "Displacement map texture URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "displacementScale": {
+            "type": "number"
+        },
+        "displacementBias": {
+            "type": "number"
+        },
+        "envMap": {
+            "type": ["string", "null"],
+            "description": "Environment map texture URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "lightMap": {
+            "type": ["string", "null"],
+            "description": "Light map texture URL",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/jpg"
+            }
+        },
+        "lightMapIntensity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "reflectivity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "refractionRatio": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "depthWrite": {
+            "type": "boolean",
+            "format": "checkbox"
+        },
+        "depthTest": {
+            "type": "boolean",
+            "format": "checkbox"
+        },
+        "alphaTest": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "format": "range"
+        },
+        "side": {
+            "type": "string",
+            "enum": ["FrontSide", "BackSide", "DoubleSide"]
+        },
+        "flatShading": {
+            "type": "boolean",
+            "format": "checkbox"
+        }
+    },
+    "required": ["type", "color"],
+    "dependencies": {
+        "roughness": ["type"],
+        "metalness": ["type"],
+        "emissive": ["type"]
+    },
+    "additionalProperties": false,
+    "default": {
+        "type": "MeshBasicMaterial",
+        "color": "#ffffff"
+    }
+}
