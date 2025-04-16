@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "mb-level-schema.json",
+    "title": "MBLevel Schema",
+    "properties": {
+        "name": {
+            "title": "Level Name",
+            "type": "string"
+        },
+        "type": {
+            "title": "Level Type",
+            "type": "string",
+            "enum": [
+                "race",
+                "sandbox"
+            ]
+        },
+        "description": {
+            "title": "Level Description",
+            "type": "string",
+            "format": "textarea"
+        },
+        "thumbnail_url": {
+            "title": "Level Thumbnail",
+            "type": "string",
+            "media": {
+                "binaryEncoding": "base64",
+                "type": "img/*"
+            }
+        }
+    }
+}

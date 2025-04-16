@@ -1,5 +1,7 @@
-const Ably = require("ably");
 import { createClient } from 'supabase-js'; // Supabase
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
 import * as THREE from 'three'; // Three.js
 
 import mb_defaultSettings from './settings-default.json' with {type: "json"};
@@ -296,7 +298,7 @@ class MB_AudioManager {
 }
 
 class MB_3DSceneUtility {
-    static appendObjectFromDataToScene(targetScene, data) {
+    static appendObjectsFromDataToScene(targetScene, data) {
         
     }
 }
@@ -774,14 +776,105 @@ class MB_MathUtility {
         return a + (b - a) * t;
     }
 
+    /**
+     * Returns a random number between min (inclusive) and max (inclusive)
+     * @param {number} min - The minimum value
+     * @param {number} max - The maximum value
+     * @returns {number} The random number
+     */
+    static randomArbitrary(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+}
+
+class MB_TreeViewItem {
+    /**
+     * Initializes a new instance of the MB_TreeViewItem class.
+     * @param {Object} options - Configuration options for the tree view item.
+     * @param {string} options.text - The text to display for the item.
+     * @param {Array<MB_TreeViewItem>} [options.children] - The child items.
+     * @param {function(MouseEvent)} [options.onclick] - The function to execute when the item is clicked.
+     * @param {function(MouseEvent)} [options.ondblclick] - The function to execute when the item is double-clicked.
+     * @param {function(MouseEvent)} [options.oncontextmenu] - The function to execute when the item is right-clicked.
+     * @returns {MB_TreeViewItem} The newly created tree view item.
+     */
+    constructor(options) {
+        this.text = options.text;
+        this.children = options.children;
+        this.onclick = options.onclick;
+        this.ondblclick = options.ondblclick;
+        this.oncontextmenu = options.oncontextmenu;
+    }
+}
+
+class MB_HTMLElementUtility {
+    /**
+     * Hides the specified elements by setting their display style to 'none'.
+     * @param {Array<HTMLElement>} elements - The elements to hide.
+     * @returns {void}
+     */
+    static hideElements(elements) {
+        for (const element of elements) {
+            element.style.display = 'none';
+        }
+    }
+
+    /**
+     * Shows the specified elements with the given display style.
+     * @param {Array<HTMLElement>} elements - The elements to show.
+     * @param {string} [display='block'] - The display style to apply to the elements.
+     * @returns {void}
+     */
+    static showElements(elements, display = 'block') {
+        for (const element of elements) {
+            element.style.display = display;
+        }
+    }
+
+    /**
+     * Creates a tree view for the specified items and appends it to the target element.
+     * @param {HTMLUListElement} targetElement - The target element to create the tree view for.
+     * @param {Array<MB_TreeViewItem>} items - The items to be displayed in the tree view.
+     * @returns {void}
+     */
+    static createTreeView(targetElement, items) {
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item.text;
+            targetElement.appendChild(li);
+
+            if (item.children) {
+                const ul = document.createElement('ul');
+                MB_HTMLElementUtility.createTreeView(ul, item.children);
+                li.appendChild(ul);
+            }
+
+            if (item.onclick) {
+                li.addEventListener('click', item.onclick);
+            }
+
+            if (item.ondblclick) {
+                li.addEventListener('dblclick', item.ondblclick);
+            }
+
+            if (item.oncontextmenu) {
+                li.addEventListener('contextmenu', item.oncontextmenu);
+            }
+        })
+    }
+
 }
 
 class MB_LevelManager {
     /**
      * Initializes a new instance of the MB_LevelManager class.
      * @param {Object} options - Configuration options for the level manager.
+     * 
      * @param {HTMLElement} options.timerContainer - The container element for the timer display.
      * @param {HTMLButtonElement} options.pauseBtn - The button element for pausing the level.
+     * @param {HTMLElement} options.levelViewportContainer - The container element for the level viewport.
+     * 
      * @param {HTMLElement} options.levelScreen - The screen element for displaying the level.
      * @param {HTMLImageElement} options.levelImageHolder - The element for holding the level image.
      * @param {HTMLElement} options.levelInfoContainer - The container element for the level information.
@@ -790,16 +883,29 @@ class MB_LevelManager {
      * @param {HTMLInputElement} options.levelJoinCodeDisplay - The element for displaying the join code.
      * @param {HTMLInputElement} options.levelJoinCodeInput - The input element for entering the join code.
      * @param {HTMLButtonElement} options.levelPlayBtn - The button element for starting the level.
+     * @param {HTMLButtonElement} options.levelEditBtn - The button element for editing the level.
      * @param {HTMLElement} options.levelPlayersAmountContainer - The container element for displaying the number of players.
      * @param {HTMLElement} options.levelJoinedPlayersList - The list element for displaying joined players.
+     * 
+     * 
+     * @param {HTMLElement} options.levelEditorScreen - The screen element for displaying the level editor.
+     * @param {HTMLElement} options.levelEditorFilePath - The path element for the level editor file.
+     * @param {HTMLElement} options.levelEditorContextMenuContainer - The container element for the level editor context menu.
+     * @param {HTMLUListElement} options.levelEditorMenuContainer - The container element for the level editor menu.
+     * @param {HTMLButtonElement} options.levelEditorMenuBtn - The button element for the level editor menu.
+     * @param {HTMLUListElement} options.levelEditorSceneGraph - The element for displaying the level editor scene graph.
+     * @param {HTMLElement} options.levelEditorInspector - The element for displaying the level editor inspector.
+     * @param {HTMLElement} options.levelEditorViewportContainer - The container element for the level editor viewport.
+     * 
      * @param {MB_ToastManager} options.toastManager - The toast manager for displaying messages.
-     * @param {MB_NetworkManager} options.networkManager - The network manager for handling network operations.
+     * @param {MB_AsyncLoadController} options.asyncLoadController - The asynchronous loading controller for managing loading operations.
      */
     constructor(options) {
         this.timerContainer = options.timerContainer;
         this.pauseBtn = options.pauseBtn;
-
+        this.levelViewportContainer = options.levelViewportContainer;
         this.levelScreen = options.levelScreen;
+
         this.levelImageHolder = options.levelImageHolder;
         this.levelInfoContainer = options.levelInfoContainer;
         this.levelHostBtn = options.levelHostBtn;
@@ -807,11 +913,26 @@ class MB_LevelManager {
         this.levelJoinCodeDisplay = options.levelJoinCodeDisplay;
         this.levelJoinCodeInput = options.levelJoinCodeInput;
         this.levelPlayBtn = options.levelPlayBtn;
+        this.levelEditBtn = options.levelEditBtn;
         this.levelPlayersAmountContainer = options.levelPlayersAmountContainer;
         this.levelJoinedPlayersList = options.levelJoinedPlayersList;
 
+        this.levelEditorScreen = options.levelEditorScreen;
+        this.levelEditorFilePath = options.levelEditorFilePath;
+        this.levelEditorContextMenuContainer = options.levelEditorContextMenuContainer;
+        this.levelEditorMenuContainer = options.levelEditorMenuContainer;
+        this.levelEditorMenuBtn = options.levelEditorMenuBtn;
+        this.levelEditorSceneGraph = options.levelEditorSceneGraph;
+        this.levelEditorInspector = options.levelEditorInspector;
+        this.levelEditorViewportContainer = options.levelEditorViewportContainer;
+        this.levelEditorScene = null;
+        this.levelEditorCamera = null;
+
         this.toastManager = options.toastManager;
-        this.networkManager = options.networkManager;
+        this.asyncLoadController = options.asyncLoadController;
+
+        this.currentLevelTick = () => {};
+        this.editedLevelTick = () => {};
     }
 
     /**
@@ -827,10 +948,70 @@ class MB_LevelManager {
             <h1>${level.name}</h1>
             <p>${level.description}</p>
         `;
-        
+        MB_HTMLElementUtility.hideElements([
+            this.levelHostBtn,
+            this.levelCloseHostBtn,
+            this.levelJoinCodeDisplay,
+            this.levelJoinCodeInput,
+            this.levelPlayersAmountContainer,
+            this.levelJoinedPlayersList
+        ]);
+        this.levelPlayBtn.onclick = () => this.playLevel(level);
     }
 
-    loadLevel(level) {}
+    playLevel(level) {
+        this.asyncLoadController.initLoadOperation([
+            new MB_AsyncLoadOperation("Loading level...", () => {
+                this.networkManager.init(level);
+            })
+        ])
+    }
+
+    /**
+     * Initializes the level editing operation by loading the level editor
+     * and setting the editor file path display to the specified campaign,
+     * chapter, and level name.
+     * @param {MB_Level} level - The level to be edited.
+     * @param {string} campaignName - The name of the campaign containing the level.
+     * @param {string} chapterName - The name of the chapter containing the level.
+     * @returns {void}
+     */
+    editLevel(level, campaignName, chapterName) {
+        this.asyncLoadController.initLoadOperation([
+            new MB_AsyncLoadOperation("Loading editor...", () => {
+                this.levelEditorFilePath.innerHTML = `${campaignName}/${chapterName}/${level.name}.mbrace`;
+                this.levelEditorScreen.style.display = "block";
+                MB_HTMLElementUtility.createTreeView(this.levelEditorMenuContainer, [
+                    new MB_TreeViewItem({
+                        text: "Close",
+                        onclick: () => {
+                            this.levelEditorMenuContainer.style.display = "none";
+                        }
+                    }),
+                    new MB_TreeViewItem({
+                        text: "Save",
+                        onclick: () => {
+                            this.levelEditorScreen.style.display = "none";
+                        }
+                    }),
+                    new MB_TreeViewItem({
+                        text: "Exit",
+                        onclick: () => {
+                            if(confirm("Are you sure you want to exit the level editor?")) {
+                                this.levelEditorScreen.style.display = "none";
+                            }
+                        }
+                    })
+                ]);
+                this.levelEditorScene = new THREE.Scene();
+                this.levelEditorCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.levelEditorCamera.position.set(5, 5, 0);
+                this.levelEditorScene.add(new THREE.GridHelper(100, 100));
+                this.levelEditorScene.add(new THREE.AxesHelper(10));
+                this.levelEditorScene.children.forEach(child => {});
+            }),
+        ])
+    }
 }
 
 class MB_NetworkManager {
@@ -884,10 +1065,12 @@ class MB_HomeCanvasManager {
     /**
      * Initializes a new instance of the MB_HomeCanvasManager class.
      * @param {HTMLElement} containerElement - The container element for the canvas.
+     * @param {MB_PerformanceManager} performanceManager - The performance manager instance.
      * @returns {MB_HomeCanvasManager}
      */
-    constructor(containerElement) {
+    constructor(containerElement, performanceManager) {
         this.container = containerElement;
+        this.performanceManager = performanceManager;
     }
 
     /**
@@ -901,19 +1084,48 @@ class MB_HomeCanvasManager {
         const camera = new THREE.PerspectiveCamera(
             75,
             this.container.clientWidth / this.container.clientHeight,
-            0.1,
+            .1,
             1000
         );
+        const defaultMaterial = new THREE.MeshMatcapMaterial({
+            color: 0xffffff,
+            map: new THREE.TextureLoader().load("../img/texture/default.png")
+        })
+        // Create a cylinder mesh
+        const cylinder = new THREE.Mesh(
+            new THREE.CylinderGeometry(5, 5, 10, 32),
+            defaultMaterial
+        );
+        cylinder.position.set(0, -4.5, 0);
+        // Create a sphere mesh
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(1, 32, 16),
+            defaultMaterial
+        )
+        sphere.position.set(4, .2, 0);
+        sphere.scale.set(.7, .7, .7);
+        // Create a DirectionalLight
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+
+        directionalLight.position.set(-3, 13, 9);
         camera.position.z = 5;
         this.scene.background = new THREE.Color(255, 184, 184);
-        this.scene.add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial({color: 0x00ff00})))
+        this.scene.add(directionalLight);
+        this.scene.add(cylinder);
+        this.scene.add(sphere);
         // Render the scene to the canvas
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setClearColor(0xffffff, 1)
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.domElement.style = "width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: -100";
         this.container.appendChild(this.renderer.domElement);
-        this.renderer.setAnimationLoop(() => {this.renderer.render(this.scene, camera)});
+        this.renderer.setAnimationLoop(() => {
+            this.renderer.render(this.scene, camera);
+            // Every frame, slightly rotate the cylinder and the sphere
+            cylinder.rotation.y += 0.01;
+            sphere.rotation.x += 0.01;
+            this.performanceManager.tick();
+        });
     }
 }
 
@@ -972,7 +1184,7 @@ const asyncLoadController = new MB_AsyncLoadController({
     ]
 });
 const inputManager = new MB_InputManager(2);
-const homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreen"));
+var homeCanvasManager;
 const audioManager = new MB_AudioManager();
 const toastManager = new MB_ToastManager(document.getElementById("toastContainer"));
 const accountManager = new MB_AccountManager({
@@ -985,6 +1197,23 @@ const accountManager = new MB_AccountManager({
     SOBtn: document.getElementById("accountSignOutBtn"),
     SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwbXN6dHV4cmxydGJueHhyaHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3OTA1MzYsImV4cCI6MjA1NjM2NjUzNn0.wxYd_XO12CKjUeQZ1_MRPnD5o_S8KBK9XDKL0jh1I1I",
     SUPABASE_URL: "https://kpmsztuxrlrtbnxxrhpj.supabase.co",
+});
+const levelManager = new MB_LevelManager({
+    timerContainer: document.getElementById("currentLevelTimer"),
+    pauseBtn: document.getElementById("currentLevelPauseBtn"),
+    levelScreen: document.getElementById("levelScreen"),
+    levelImageHolder: document.getElementById("levelImage"),
+    levelInfoContainer: document.getElementById("levelInfoContainer"),
+    levelHostBtn: document.getElementById("levelHostBtn"),
+    levelCloseHostBtn: document.getElementById("levelCloseHostBtn"),
+    levelJoinCodeDisplay: document.getElementById("levelJoinCode"),
+    levelJoinCodeInput: document.getElementById("levelJoinInput"),
+    levelPlayBtn: document.getElementById("levelPlayBtn"),
+    levelEditBtn: document.getElementById("levelEditBtn"),
+    levelPlayersAmountContainer: document.getElementById("levelPlayersAmount"),
+    levelJoinedPlayersList: document.getElementById("levelJoinedPlayersList"),
+    toastManager: toastManager,
+    asyncLoadController: asyncLoadController
 });
 var performanceManager;
 var storageManager;
@@ -1040,6 +1269,7 @@ window.onload = () => {
                 inputManager: inputManager,
                 debugOverlay: document.getElementById("debugOverlay"),
             });
+            homeCanvasManager = new MB_HomeCanvasManager(document.getElementById("homeScreen"), performanceManager);
         }),
         new MB_AsyncLoadOperation("Loading confirmation dialog...", () => {
             // When the user closes the page, display a confirmation before closing

@@ -1,5 +1,5 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema",
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "settings-schema.json",
     "title": "Settings",
     "properties": {
@@ -53,57 +53,6 @@
                     "title": "Use keyboard",
                     "type": "boolean",
                     "format": "checkbox"
-                },
-                "useGamepad": {
-                    "title": "Use gamepad",
-                    "type": "boolean",
-                    "format": "checkbox",
-                    "options": {
-                        "hidden": true
-                    }
-                },
-                "gamepadControls": {
-                    "title": "Gamepad controls",
-                    "type": "object",
-                    "properties": {
-                        "uiNavigation": {
-                            "title": "UI Navigation",
-                            "type": "string",
-                            "enum": [
-                                "dPad",
-                                "leftJoystick",
-                                "rightJoystick"
-                            ]
-                        },
-                        "playPause": {
-                            "title": "Play/Pause",
-                            "type": "string",
-                            "enum": [
-                                "start",
-                                "select"
-                            ]
-                        },
-                        "playerMovement": {
-                            "title": "Player Movement",
-                            "type": "string",
-                            "enum": [
-                                "dPad",
-                                "leftJoystick",
-                                "rightJoystick"
-                            ]
-                        },
-                        "gamepadVibration": {
-                            "title": "Use gamepad vibration (if supported)",
-                            "type": "boolean",
-                            "format": "checkbox"
-                        }
-                    },
-                    "dependencies": {
-                        "root.controls.useGamepad": true
-                    },
-                    "options": {
-                        "hidden": true
-                    }
                 }
             }
         }

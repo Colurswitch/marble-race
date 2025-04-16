@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marble Race</title>
-    <link rel="stylesheet" href="css/product-sans.css" />
+    <link href="css/product-sans.css" rel="stylesheet" />
+    <link href="css/slinky.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
@@ -24,6 +25,7 @@
             }
         }
     </script>
+    <script src="js/slinky.min.js"></script>
     <script src="js/index.js" type="module" defer></script>
     <style>
         body {
@@ -51,7 +53,7 @@
             pointer-events: none;
         }
 
-        .button, .input, .select, .checkbox, .radio,
+        .button, .input, .select, .checkbox, .radio, .box,
         input, textarea, select, button{
             appearance: none;
             background: rgba(185, 185, 185, .5);
@@ -80,6 +82,12 @@
             padding: 0;
         }
 
+        *:has(.checkbox), *:has(.radio), *:has(input[type=checkbox]), *:has(input[type=radio]) {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
         .checkbox:checked, input[type=checkbox]:checked, .radio:checked, input[type=radio]:checked {
             background-image: url('img/check.png');
             background-size: contain;
@@ -97,6 +105,12 @@
         .button.is-large, button.is-large, input[type=button].is-large
         input[type=submit].is-large, input[type=reset].is-large {
             font-size: 24px !important;
+        }
+
+        .button.is-icon, button.is-icon, input[type=button].is-icon
+        input[type=submit].is-icon, input[type=reset].is-icon {
+            width: 45px !important;
+            height: 45px !important;
         }
 
         .button.is-large .icon, button.is-large .icon, input[type=button].is-large .icon
@@ -223,6 +237,27 @@
             font-size: 30px;
         }
 
+        ul.treeview {
+            list-style: none;
+            padding: 0;
+            margin: 10px;
+        }
+
+        ul.treeview li {
+            padding: 5px
+        }
+
+        ul.treeview li ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            margin-left: 10px;
+        }
+
+        ul.treeview.is-hoverable li:hover {
+            background: rgba(185, 185, 185, .1);
+        }
+
         #loadingProgress {
             width: 100%;
             height: 15px;
@@ -248,6 +283,7 @@
             font-size: small;
             pointer-events: none;
             z-index: 1000;
+            opacity: .5;
         }
 
         #toastContainer {
@@ -287,6 +323,10 @@
             }
         }
 
+        #levelEditorInspector h1, h2, h3, h4, h5, h6, p {
+            margin: 5px;
+        }
+
         @media only screen and (max-width: 768px) {
             
         }
@@ -297,7 +337,6 @@
         FPS: 0
     </div>
     <stretch id="homeScreen" style="align-items: flex-end; justify-content: flex-end;">
-        <canvas id="homeScreenCanvas" style="width: 100%; height: 100vh; position: absolute; top: 0; left: 0;"></canvas>
         <div style="margin: 10px; display: flex; flex-direction: column;">
             <button class="is-large" onclick="document.getElementById('campaignsScreen').style.display = 'flex';">
                 <i class="material-icons icon">play_arrow</i>
@@ -382,6 +421,7 @@
             <button id="campaignCreateBtn">
                 <i class="material-icons icon">add</i>
             </button>
+            <input type="text" id="levelJoinInput" placeholder="Join Code">
         </div>
         <div id="campaignsList" style="width: 100%; display: flex; justify-content: space-evenly; flex-wrap: wrap;">
             <div class="campaign-item">
@@ -478,7 +518,7 @@
             <span>Back</span>
         </button>
     </stretch>
-    <stretch id="levelScreen" style="display: flex; justify-content: flex-start; flex-direction: column; gap: 10px; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 40px); height: calc(100vh - 40px);"">
+    <stretch id="levelScreen" style="display: none; justify-content: flex-start; flex-direction: column; gap: 10px; backdrop-filter: blur(5px) brightness(50%); padding: 20px; width: calc(100% - 40px); height: calc(100vh - 40px);"">
         <div style="display: flex; width: 100%; gap: 35px; border-radius: 10px; background: rgba(185, 185, 185, .5); backdrop-filter: blur(5px) brightness(50%);">
             <img src="https://picsum.photos/200" id="levelImage" width="200" height="200" style="object-fit: cover; border-radius: 10px;">
             <div id="levelInfoContainer">
@@ -497,6 +537,9 @@
             <button id="levelPlayBtn">
                 <i class="material-icons">play_arrow</i>
             </button>
+            <button id="levelEditBtn">
+                <i class="material-icons">edit</i>
+            </button>
             <h3 style="display: inline-flex; gap: 5px; margin: 10px;">
                 <i class="material-icons">person</i>
                 <span id="levelPlayersAmount">0</span>
@@ -510,6 +553,48 @@
             <i class="material-icons icon">arrow_back</i>
             <span>Back</span>
         </button>
+    </stretch>
+    <stretch id="levelPlayerScreen" style="display: none; justify-content: flex-start; flex-direction: column; gap: 10px; background: black; padding: 10px; width: calc(100% - 20px); height: calc(100vh - 20px);">
+        <button id="currentLevelPauseBtn" class="is-icon" style="position: absolute; left: 10px;">
+            <i class="material-icons">pause</i>
+        </button>
+        <div id="currentLevelTimer" class="box" style="height: 25px; font-size: large;">
+            0.00
+        </div>
+        <div id="currentLevelViewportContainer"></div>
+    </stretch>
+    <stretch id="levelEditorScreen" style="display: flex; justify-content: flex-start; flex-direction: column; background: black;">
+        <div id="levelEditorViewportContainer"></div>
+        <div class="top-bar">
+            <button id="levelEditorMenuBtn">
+                <i class="material-icons">menu</i>
+            </button>
+            <button id="levelEditorAddObjectBtn">
+                <i class="material-icons">add</i>
+            </button>
+            <div id="levelEditorFilePath">
+                Campaign Name/Chapter Name/Level Name
+            </div>
+        </div>
+        <ul id="levelEditorMenuContainer" style="display: none; position: absolute; top: 0; left: 0; font-size: large; width: 300px; height: 100%; margin: 0; background: rgba(185, 185, 185, .5);" class="treeview is-hoverable">
+            <li>Close</li>
+            <li>Save</li>
+            <li>Export to .mbrace</li>
+            <li>Exit</li>
+        </ul>
+        <ul id="levelEditorContextMenuContainer" style="display: none;width: 150px; max-height: 350px; background: rgba(185, 185, 185, .5); position: absolute; top: 0; left: 0; margin: 0;" class="treeview is-hoverable">
+            <li>Close</li>
+        </ul>
+        <div style="position: absolute; bottom: 0; right: 0; padding-right: 10px; width: 300px; height: calc(100% - 45px); background: rgba(185, 185, 185, .5);">
+            <ul style="height: 400px; width: 290px; overflow-y: auto; background: rgba(185, 185, 185, .1); border-radius: 5px;" id="levelEditorSceneGraph" class="treeview is-hoverable"></ul>
+            <div style="margin-left: 10px; padding: 10px; width: 290px !; max-height: 400px; background: rgba(185, 185, 185, .1); border-radius: 5px;" id="levelEditorInspector">
+                <h1>Current Object Title</h1>
+                <h2>Header test</h2>
+                <h3>Header test</h3>
+                <h4>Header test</h4>
+                <p>Item text</p>
+            </div>
+        </div>
     </stretch>
     <stretch id="loadingScreen" style="display: none; align-items: flex-end; padding: 10px; height: calc(100vh - 20px); width: calc(100% - 20px); backdrop-filter: blur(5px) brightness(50%);" class="">
         <div style="width: 100%; max-width: 768px;">

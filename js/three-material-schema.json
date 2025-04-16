@@ -45,7 +45,7 @@
             "description": "URL of the texture map",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "alphaMap": {
@@ -53,7 +53,7 @@
             "description": "URL of the alpha texture",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "aoMap": {
@@ -61,7 +61,7 @@
             "description": "Ambient occlusion texture URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "aoMapIntensity": {
@@ -75,7 +75,7 @@
             "description": "Bump map texture URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "bumpScale": {
@@ -86,7 +86,7 @@
             "description": "Normal map texture URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "normalScale": {
@@ -124,7 +124,7 @@
             "description": "Emissive texture map URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "displacementMap": {
@@ -132,7 +132,7 @@
             "description": "Displacement map texture URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "displacementScale": {
@@ -146,7 +146,7 @@
             "description": "Environment map texture URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "lightMap": {
@@ -154,7 +154,7 @@
             "description": "Light map texture URL",
             "media": {
                 "binaryEncoding": "base64",
-                "type": "img/jpg"
+                "type": "img/*"
             }
         },
         "lightMapIntensity": {
